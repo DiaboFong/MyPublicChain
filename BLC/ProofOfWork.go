@@ -56,7 +56,7 @@ func (pow *ProofOfWork) Run() ([]byte, int64) {
 		//(2)生成hash
 		hash = sha256.Sum256(dataByte)
 		//循环打印出计算的Hash值，不换行
-		fmt.Printf("\rNonce:%d\tHash:%x", nonce, hash)
+		fmt.Printf("\rNonce:%d Hash:%x", nonce, hash)
 		//(3)将生成的Hash转换成big.Int类型
 		hashBigInt := new(big.Int)
 		hashBigInt.SetBytes(hash[:])
