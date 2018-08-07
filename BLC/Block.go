@@ -54,3 +54,11 @@ func (block *Block) SetHash() {
 	block.Hash = hash[:]
 
 }
+
+
+//4.生成创世区块
+func CreateGenesisBlock(data string) *Block {
+
+	return NewBlock(data, []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},0)
+
+}
