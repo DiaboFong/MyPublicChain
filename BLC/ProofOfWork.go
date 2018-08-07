@@ -86,3 +86,14 @@ func (pow *ProofOfWork) prepareData(nonce int64) []byte {
 	}, []byte{})
 	return data
 }
+
+//定义一个方法用于验证区块是否合法
+func (pow *ProofOfWork) IsValid() bool {
+	hashBigInt := new(big.Int)
+	hashBigInt.SetBytes(pow.Block.Hash)
+	if pow.Target.Cmp(hashBigInt) == 1 {
+		return true
+	}
+	return false
+
+}
