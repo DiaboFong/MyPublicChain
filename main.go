@@ -1,18 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"MyPublicChain/BLC"
 )
 
 func main() {
-	//创建一个带有创世区块的区块链
+	//1.创建一个带有创世区块的区块链
 	bc := BLC.CreateBlockChainWithGenesisBlock("Create Block Chain With GenesisBlock")
-	//打印该区块链，&{[0xc420068060]}
-	fmt.Println(bc)
-	//打印该区块链的Blocks
-	fmt.Println(bc.Blocks)
-	//打印该区块链Blocks数组中存储的第一个区块
-	fmt.Println(bc.Blocks[0])
+	//2.通过POW挖出第一个区块
+	bc.AddBlockToBlockChain("Send $B100 To brucefeng", bc.Blocks[len(bc.Blocks)-1].Hash, bc.Blocks[len(bc.Blocks)-1].Height+1)
 
 }

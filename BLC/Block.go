@@ -21,16 +21,23 @@ type Block struct {
 	TimeStamp int64
 	//区块自己的Hash值
 	Hash []byte
+	//随机数 Nonce
+	Nonce int64
 }
 
 //2. 定义一个函数用于创建一个区块
 func NewBlock(data string, prevBlock []byte, height int64) *Block {
 	//创建区块
 	block := &Block{Height: height, PrevBlockHash: prevBlock, Data: []byte(data), TimeStamp: time.Now().Unix()}
-	//设置区块Hash
-	block.SetHash()
-	return block
+	//设置区块Hash ===> 通过POW方法计算出Hash值
+	/*	block.SetHash()
+		return block*/
 
+	pow := NewProofOfWork(block)
+	hash, nonce := pow.Run()
+	block.Hash = hash
+	block.Nonce = nonce
+	return block
 }
 
 //3. 设置区块的Hash值
@@ -55,10 +62,9 @@ func (block *Block) SetHash() {
 
 }
 
-
 //4.生成创世区块
 func CreateGenesisBlock(data string) *Block {
 
-	return NewBlock(data, []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},0)
+	return NewBlock(data, []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0)
 
 }
