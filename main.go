@@ -7,74 +7,24 @@ import (
 )
 
 func main() {
-	/*	//1.创建一个带有创世区块的区块链
-		bc := BLC.CreateBlockChainWithGenesisBlock("Create Block Chain With GenesisBlock")
-		//2.通过POW挖出第一个区块
-		bc.AddBlockToBlockChain("Send $B100 To brucefeng", bc.Blocks[len(bc.Blocks)-1].Hash, bc.Blocks[len(bc.Blocks)-1].Height+1)
-		//3.验证区块是否合法
-		pow := BLC.NewProofOfWork(bc.Blocks[1])
-		isValid := pow.IsValid()
-		if isValid {
-			fmt.Println("区块合法")
-			return
-		}
-		fmt.Println("区块不合法")*/
-
-	/*
-	安装配置BoltDB
-	1.安装 		go get "github.com/boltdb/bolt"
-	2.打开数据库
-	db.View() 查看数据库
-	db.Update() 读写
-
-	 */
-
-	//db, err := bolt.Open("my.db", 0600, nil)
-	//if err != nil {
-	//	log.Panic(err)
-	//}
-	//defer db.Close()
-	//
-	////	3.存储一个数据[]byte
-	//db.Update(func(tx *bolt.Tx) error {
-	//	//存储数据
-	//	//1. 创建表
-	//	bucket, err := tx.CreateBucket([]byte("mybucket"))
-	//	if err != nil {
-	//		log.Panic(err) //数据表创建有误
-	//
-	//	}
-	//	//2.存储数据
-	//	if bucket != nil {
-	//		err := bucket.Put([]byte("k"), []byte("send 100 to brucefeng"))
-	//		if err != nil {
-	//			fmt.Println("数据存储有误")
-	//		}
-	//	}
-	//	return nil
-	//
-	//})
-
-
-	//4.读取数据库
-	db, err := bolt.Open("my.db",0600,nil)
-	if err !=nil {
+	db, err := bolt.Open("my.db", 0600, nil)
+	if err != nil {
 		log.Panic(err)
 	}
 	defer db.Close()
+	err = db.View(func(tx *bolt.Tx) error {
 
-	err = db.View(func (tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte("mybucket"))
-
-		if bucket !=nil {
-			//读取数据
-			dataByte := bucket.Get([]byte("k"))
-
-			fmt.Println(string(dataByte))
+		//创建游标对数据进行遍历
+		cursor := bucket.Cursor()
+		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
+			fmt.Printf("key:%s, value:%s\n", k, v)
 		}
+
 		return nil
 	})
-	if err !=nil {
+
+	if err != nil {
 		log.Panic(err)
 	}
 

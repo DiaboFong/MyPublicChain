@@ -47,10 +47,10 @@
       <file leaf-file-name="main.go" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="437">
-              <caret line="56" column="4" selection-start-line="56" selection-start-column="4" selection-end-line="56" selection-end-column="4" />
+            <state relative-caret-position="323">
+              <caret line="19" column="47" selection-start-line="19" selection-start-column="47" selection-end-line="19" selection-end-column="47" />
               <folding>
-                <element signature="e#14#64#0" expanded="true" />
+                <element signature="e#14#57#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -252,7 +252,8 @@
     <MESSAGE value="定义POW共识算法-测试Goland" />
     <MESSAGE value="添加区块有效性验证方法" />
     <MESSAGE value="BoltDB-创建与存储" />
-    <option name="LAST_COMMIT_MESSAGE" value="BoltDB-创建与存储" />
+    <MESSAGE value="BoltDB-View-Get查询数据" />
+    <option name="LAST_COMMIT_MESSAGE" value="BoltDB-View-Get查询数据" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/BLC/Block.go">
@@ -322,10 +323,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/main.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="437">
-          <caret line="56" column="4" selection-start-line="56" selection-start-column="4" selection-end-line="56" selection-end-column="4" />
+        <state relative-caret-position="323">
+          <caret line="19" column="47" selection-start-line="19" selection-start-column="47" selection-end-line="19" selection-end-column="47" />
           <folding>
-            <element signature="e#14#64#0" expanded="true" />
+            <element signature="e#14#57#0" expanded="true" />
           </folding>
         </state>
       </provider>
