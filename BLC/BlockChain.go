@@ -5,6 +5,8 @@ import (
 	"os"
 	"fmt"
 	"log"
+	"math/big"
+	"time"
 )
 
 //定义一个区块链(区块的数组)
@@ -19,7 +21,7 @@ func CreateBlockChainWithGenesisBlock(data string) *BlockChain {
 
 	//如果数据库存在，直接获取数据库中l对应的最新hash
 	if dbExists() {
-		fmt.Println("数据库已经存在...")
+		fmt.Println("创世区块已经存在...")
 		//打开数据库
 		db, err := bolt.Open(DBName, 0600, nil)
 		if err != nil {
@@ -45,7 +47,7 @@ func CreateBlockChainWithGenesisBlock(data string) *BlockChain {
 
 	}
 
-	fmt.Println("数据库不存在")
+	fmt.Println("创世区块不存在")
 	/*如果数据库不存在
 	1.创建创世区块
 	2.存入到数据库中
@@ -80,7 +82,7 @@ func CreateBlockChainWithGenesisBlock(data string) *BlockChain {
 
 }
 
-//添加区块到区块链中
+//添加区块到区块链中(存储至Boltdb)
 func (bc *BlockChain) AddBlockToBlockChain(data string) {
 
 	err := bc.DB.Update(func(tx *bolt.Tx) error {
@@ -90,7 +92,7 @@ func (bc *BlockChain) AddBlockToBlockChain(data string) {
 			blockBytes := bucket.Get(bc.Tip)
 			lastBlock := DeSerializeBlock(blockBytes)
 			//创建新的区块
-			newBlock := NewBlock(data, lastBlock.PrevBlockHash, lastBlock.Height+1)
+			newBlock := NewBlock(data, lastBlock.Hash, lastBlock.Height+1)
 			err := bucket.Put(newBlock.Hash, newBlock.Serialize())
 			if err != nil {
 				log.Panic(err)
@@ -115,5 +117,60 @@ func dbExists() bool {
 		return false
 	}
 	return true
+
+}
+
+//定义一个用于遍历数据库的方法，打印所有区块
+func (bc *BlockChain) PrintChains() {
+	/*
+	1. bc.DB.View()
+	根据Hash,获取Block数据
+	反序列化
+	打印输出
+	 */
+
+	var currentHash = bc.Tip //当前要获取的区块的Hash值
+	var block *Block
+	for {
+		//1.根据currentHash获取对应的区块
+		err := bc.DB.View(func(tx *bolt.Tx) error {
+			bucket := tx.Bucket([]byte(BucketName))
+			if bucket != nil {
+				//根据current获取对应的区块数据
+				blockBytes := bucket.Get(currentHash)
+				//反序列化后得到Block对象
+				block = DeSerializeBlock(blockBytes)
+
+				fmt.Printf("第%d个区块信息如下:\n", block.Height+1)
+				fmt.Printf("区块高度:%d\n", block.Height)
+				fmt.Printf("上一个区块哈希:%x\n", block.PrevBlockHash)
+				fmt.Printf("区块哈希:%x\n", block.Hash)
+				fmt.Printf("区块交易:%s\n", block.Data)
+				fmt.Printf("区块时间戳:%s\n", time.Unix(block.TimeStamp, 0).Format("2006-01-02 15:04:05"))
+
+				fmt.Printf("区块随机数%d\n", block.Nonce)
+			}
+			return nil
+
+		})
+
+		if err != nil {
+			log.Panic(err)
+		}
+
+		//2.判断区块的prevBlockHash是否为0，
+
+		// 为0  : 表示该Block是创世区块,结束循环
+
+		hashBigInt := new(big.Int)
+		hashBigInt.SetBytes(block.PrevBlockHash)
+		if hashBigInt.Cmp(big.NewInt(0)) == 0 {
+			fmt.Println("这是创世区块，数据查询结束")
+			break
+		}
+		// 不为0:修改currentHash值为block的prevBlockHash
+		currentHash = block.PrevBlockHash
+
+	}
 
 }
