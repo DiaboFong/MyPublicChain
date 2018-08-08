@@ -87,7 +87,7 @@ func (block *Block) Serialize() []byte {
 
 //发序列化-解码,将blockBytes转换成block
 func DeSerializeBlock(blockBytes []byte) *Block {
-	var block Block
+	var block *Block
 	//1.创建一个reader对象
 	reader := bytes.NewReader(blockBytes)
 	//2.创建解码器
@@ -97,6 +97,6 @@ func DeSerializeBlock(blockBytes []byte) *Block {
 	if err != nil {
 		log.Panic(err)
 	}
-	return &block
+	return block
 
 }
