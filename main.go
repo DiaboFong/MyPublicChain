@@ -24,34 +24,58 @@ func main() {
 	安装配置BoltDB
 	1.安装 		go get "github.com/boltdb/bolt"
 	2.打开数据库
+	db.View() 查看数据库
+	db.Update() 读写
+
 	 */
-	db, err := bolt.Open("my.db", 0600, nil)
-	if err != nil {
+
+	//db, err := bolt.Open("my.db", 0600, nil)
+	//if err != nil {
+	//	log.Panic(err)
+	//}
+	//defer db.Close()
+	//
+	////	3.存储一个数据[]byte
+	//db.Update(func(tx *bolt.Tx) error {
+	//	//存储数据
+	//	//1. 创建表
+	//	bucket, err := tx.CreateBucket([]byte("mybucket"))
+	//	if err != nil {
+	//		log.Panic(err) //数据表创建有误
+	//
+	//	}
+	//	//2.存储数据
+	//	if bucket != nil {
+	//		err := bucket.Put([]byte("k"), []byte("send 100 to brucefeng"))
+	//		if err != nil {
+	//			fmt.Println("数据存储有误")
+	//		}
+	//	}
+	//	return nil
+	//
+	//})
+
+
+	//4.读取数据库
+	db, err := bolt.Open("my.db",0600,nil)
+	if err !=nil {
 		log.Panic(err)
 	}
 	defer db.Close()
-	/*
-db.View() 查看数据库
-db.Update() 读写
- */
-	//3.存储一个数据[]byte
-	db.Update(func(tx *bolt.Tx) error {
-		//存储数据
-		//1. 创建表
-		bucket, err := tx.CreateBucket([]byte("mybucket"))
-		if err != nil {
-			log.Panic(err) //数据表创建有误
 
-		}
-		//2.存储数据
+	err = db.View(func (tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte("mybucket"))
+
 		if bucket !=nil {
-			err := bucket.Put([]byte("k"),[]byte("send 100 to brucefeng"))
-			if err !=nil {
-				fmt.Println("数据存储有误")
-			}
+			//读取数据
+			dataByte := bucket.Get([]byte("k"))
+
+			fmt.Println(string(dataByte))
 		}
 		return nil
-
 	})
+	if err !=nil {
+		log.Panic(err)
+	}
 
 }
