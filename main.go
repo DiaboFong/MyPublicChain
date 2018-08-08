@@ -1,31 +1,22 @@
 package main
 
 import (
-	"github.com/boltdb/bolt"
-	"log"
+	"MyPublicChain/BLC"
 	"fmt"
 )
 
 func main() {
-	db, err := bolt.Open("my.db", 0600, nil)
-	if err != nil {
-		log.Panic(err)
-	}
-	defer db.Close()
-	err = db.View(func(tx *bolt.Tx) error {
+	//验证Block的序列化与反序列化
 
-		bucket := tx.Bucket([]byte("mybucket"))
-		//创建游标对数据进行遍历
-		cursor := bucket.Cursor()
-		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
-			fmt.Printf("key:%s, value:%s\n", k, v)
-		}
+	block := BLC.NewBlock("brucefeng block", make([]byte, 3, 3), 1)
 
-		return nil
-	})
+	fmt.Println(block)
+	//测试序列化
+	blockBytes := block.Serialize()
+	fmt.Println(blockBytes)
+	//测试反序列化
 
-	if err != nil {
-		log.Panic(err)
-	}
+	block2 := BLC.DeSerializeBlock(blockBytes)
+	fmt.Println(block2)
 
 }

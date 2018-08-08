@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"bytes"
 	"crypto/sha256"
+	"encoding/gob"
+	"log"
 )
 
 //1.定义一个Block
@@ -66,5 +68,35 @@ func (block *Block) SetHash() {
 func CreateGenesisBlock(data string) *Block {
 
 	return NewBlock(data, []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0)
+
+}
+
+//序列化-编码,将block转换成buff
+func (block *Block) Serialize() []byte {
+	//1.创建一个Buff对象
+	var buf bytes.Buffer
+	//2. 创建一个编码器
+	encoder := gob.NewEncoder(&buf)
+	//3.对block进行编码
+	err := encoder.Encode(block)
+	if err != nil {
+		log.Panic(err)
+	}
+	return buf.Bytes()
+}
+
+//发序列化-解码,将blockBytes转换成block
+func DeSerializeBlock(blockBytes []byte) *Block {
+	var block Block
+	//1.创建一个reader对象
+	reader := bytes.NewReader(blockBytes)
+	//2.创建解码器
+	decoder := gob.NewDecoder(reader)
+	//3.解码
+	err := decoder.Decode(&block)
+	if err != nil {
+		log.Panic(err)
+	}
+	return &block
 
 }

@@ -18,7 +18,7 @@ Hash:256bit == > 16进制:32个字符
 0000 1000
  */
 
-const TargetBit = 20 //目标Hash的0的个数(256位16个0，16进制:4个0)
+const TargetBit = 16 //目标Hash的0的个数(256位16个0，16进制:4个0)
 
 type ProofOfWork struct {
 	Block  *Block   // 要验证的Block
