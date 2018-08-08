@@ -1,22 +1,60 @@
 package main
 
 import (
-	"MyPublicChain/BLC"
+	"github.com/boltdb/bolt"
+	"log"
 	"fmt"
+	"MyPublicChain/BLC"
 )
 
 func main() {
-	//验证Block的序列化与反序列化
+	block := BLC.NewBlock("create a block for boltdb", make([]byte, 3, 3), 0)
 
-	block := BLC.NewBlock("brucefeng block", make([]byte, 3, 3), 1)
+	//测试Block存入到数据库Boltdb中
+	db, err := bolt.Open("my.db", 0600, nil)
+	if err != nil {
+		log.Panic(err)
+	}
+	defer db.Close()
 
-	fmt.Println(block)
-	//测试序列化
-	blockBytes := block.Serialize()
-	fmt.Println(blockBytes)
-	//测试反序列化
+	//将block存入到数据库中
 
-	block2 := BLC.DeSerializeBlock(blockBytes)
-	fmt.Println(block2)
+	err = db.Update(func(tx *bolt.Tx) error {
+		//创建一个bucket
+		bucket, err := tx.CreateBucketIfNotExists([]byte("blocks"))
+		if err != nil {
+			log.Panic(err)
+		}
+		if bucket != nil {
+			err = bucket.Put([]byte("l"), block.Serialize())
+			if err != nil {
+				fmt.Println("数据存储失败")
+			}
 
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		fmt.Println("更新数据库失败")
+	}
+
+	err = db.View(func(tx *bolt.Tx) error {
+
+		bucket := tx.Bucket([]byte("blocks"))
+		if bucket != nil {
+
+			dataBytes := bucket.Get([]byte("l"))
+			block := BLC.DeSerializeBlock(dataBytes)
+			fmt.Println(block)
+
+		}
+
+		return nil
+
+	})
+	if err != nil {
+		log.Panic(err)
+	}
 }
