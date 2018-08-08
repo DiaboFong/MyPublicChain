@@ -17,7 +17,7 @@ type BlockChain struct {
 //创建一个区块链，包含创世区块
 func CreateBlockChainWithGenesisBlock(data string) *BlockChain {
 
-	//数据库如果存在，则表示创世区块已经创建 ，取值即可
+	//如果数据库存在，直接获取数据库中l对应的最新hash
 	if dbExists() {
 		fmt.Println("数据库已经存在...")
 		//打开数据库
@@ -45,9 +45,8 @@ func CreateBlockChainWithGenesisBlock(data string) *BlockChain {
 
 	}
 
-	//数据库不存在，创建创世区块，并存入数据库中
 	fmt.Println("数据库不存在")
-	/*
+	/*如果数据库不存在
 	1.创建创世区块
 	2.存入到数据库中
 	 */
@@ -82,14 +81,31 @@ func CreateBlockChainWithGenesisBlock(data string) *BlockChain {
 }
 
 //添加区块到区块链中
-func (bc *BlockChain) AddBlockToBlockChain(data string, prevBlockHash []byte, height int64) {
+func (bc *BlockChain) AddBlockToBlockChain(data string) {
 
-/*	//1.根据参数的数据，创建Block
-	newBlock := NewBlock(data, prevBlockHash, height)
+	err := bc.DB.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(BucketName))
+		if bucket != nil {
+			//获取bc的Tip(最新的Hash),从数据库中读取最后一个Block,获取其Hash,Height
+			blockBytes := bucket.Get(bc.Tip)
+			lastBlock := DeSerializeBlock(blockBytes)
+			//创建新的区块
+			newBlock := NewBlock(data, lastBlock.PrevBlockHash, lastBlock.Height+1)
+			err := bucket.Put(newBlock.Hash, newBlock.Serialize())
+			if err != nil {
+				log.Panic(err)
+			}
+			//更新bc的TIP，以及数据库中l的值
+			bc.Tip = newBlock.Hash
+			bucket.Put([]byte("l"), newBlock.Hash)
 
-	//2.将block加入blockchain
-	bc.Blocks = append(bc.Blocks, newBlock)
-*/
+		}
+		return nil
+
+	})
+	if err != nil {
+		log.Panic(err)
+	}
 }
 
 //定义一个方法，用于判断数据库是否存在
