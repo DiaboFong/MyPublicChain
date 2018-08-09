@@ -16,38 +16,30 @@ type BlockChain struct {
 	Tip []byte   // 存储区块中最后一个块的Hash值
 }
 
-//创建一个区块链，包含创世区块
-func CreateBlockChainWithGenesisBlock(data string) *BlockChain {
+//创建一个区块链，包含创世区块====>拆解成两块内容(提供给命令行功能使用)
+/*
+1.创建创世区块CreateGenesisBlockToDB(data string)
+(1) 如果数据库存在，返回:创世区块已存在，退出程序
 
-	//如果数据库存在，直接获取数据库中l对应的最新hash
+(2) 如果数据库不存在，则创建创世区块
+
+
+
+2.获取BlockChain对象GetBlockChainObject()
+(1) 如果数据库存在，则从数据库中取数据并返回BlockChain对象
+(2) 如果数据库不存在，则返回创世区块不存在，请通过xxx命令行创建创世区块
+
+
+ */
+func CreateGenesisBlockToDB(data string) {
+
 	if dbExists() {
-		fmt.Println("创世区块已经存在...")
-		//打开数据库
-		db, err := bolt.Open(DBName, 0600, nil)
-		if err != nil {
-			log.Panic(err)
-		}
-		var blockchain *BlockChain
-
-		err = db.View(func(tx *bolt.Tx) error {
-			//打开Bucket，读取l对应的最新Hash值
-			bucket := tx.Bucket([]byte(BucketName))
-			if bucket != nil {
-				//读取最新的hash
-				hash := bucket.Get([]byte("l"))
-				blockchain = &BlockChain{DB: db, Tip: hash}
-
-			}
-			return nil
-		})
-		if err != nil {
-			log.Panic(err)
-		}
-		return blockchain
-
+		fmt.Println("创世区块已存在，你可以继续添加新的区块")
+		printUsage()
+		os.Exit(1)
 	}
 
-	fmt.Println("创世区块不存在")
+	fmt.Println("创世区块不存在，开始创建")
 	/*如果数据库不存在
 	1.创建创世区块
 	2.存入到数据库中
@@ -78,8 +70,41 @@ func CreateBlockChainWithGenesisBlock(data string) *BlockChain {
 	if err != nil {
 		log.Panic(err)
 	}
-	return &BlockChain{DB: db, Tip: genesisBlock.Hash}
 
+}
+
+//定义一个函数，用于获取BlockChain对象
+
+func GetBlockChainObject() *BlockChain {
+
+	//如果数据库存在，直接获取数据库中l对应的最新hash
+	if dbExists() {
+		//打开数据库
+		db, err := bolt.Open(DBName, 0600, nil)
+		if err != nil {
+			log.Panic(err)
+		}
+		var blockchain *BlockChain
+
+		err = db.View(func(tx *bolt.Tx) error {
+			//打开Bucket，读取l对应的最新Hash值
+			bucket := tx.Bucket([]byte(BucketName))
+			if bucket != nil {
+				//读取最新的hash
+				hash := bucket.Get([]byte("l"))
+				blockchain = &BlockChain{DB: db, Tip: hash}
+
+			}
+			return nil
+		})
+		if err != nil {
+			log.Panic(err)
+		}
+		return blockchain
+
+	}
+
+	return nil
 }
 
 //添加区块到区块链中(存储至Boltdb)
@@ -141,20 +166,18 @@ func (bc *BlockChain) PrintChains() {
 		fmt.Printf("区块交易:%s\n", block.Data)
 		fmt.Printf("区块时间戳:%s\n", time.Unix(block.TimeStamp, 0).Format("2006-01-02 15:04:05"))
 		fmt.Printf("区块随机数%d\n", block.Nonce)
+		fmt.Println()
+		//2.判断区块的prevBlockHash是否为0，
 
+		// 为0  : 表示该Block是创世区块,结束循环
+		hashBigInt := new(big.Int)
+		hashBigInt.SetBytes(block.PrevBlockHash)
+		if hashBigInt.Cmp(big.NewInt(0)) == 0 {
+			fmt.Println("这是创世区块，数据查询结束")
+			break
+		}
 
-	//2.判断区块的prevBlockHash是否为0，
-
-	// 为0  : 表示该Block是创世区块,结束循环
-	hashBigInt := new(big.Int)
-	hashBigInt.SetBytes(block.PrevBlockHash)
-	if hashBigInt.Cmp(big.NewInt(0)) == 0 {
-		fmt.Println("这是创世区块，数据查询结束")
-		break
 	}
-
-
-}
 
 }
 
@@ -162,6 +185,3 @@ func (bc *BlockChain) PrintChains() {
 func (bc *BlockChain) Iterator() *BlockChainIterator {
 	return &BlockChainIterator{DB: bc.DB, CurrentHash: bc.Tip}
 }
-
-
-//定义一个函数，用于获取BlockChain对象
