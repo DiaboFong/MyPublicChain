@@ -162,3 +162,6 @@ func (bc *BlockChain) PrintChains() {
 func (bc *BlockChain) Iterator() *BlockChainIterator {
 	return &BlockChainIterator{DB: bc.DB, CurrentHash: bc.Tip}
 }
+
+
+//定义一个函数，用于获取BlockChain对象
