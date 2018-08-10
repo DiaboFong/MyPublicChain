@@ -14,12 +14,15 @@ func (cli CLI) Run() {
 
 	//1. 创建FlagSet命令对象
 	createBlockChainCmd := flag.NewFlagSet("creategenesisblock", flag.ExitOnError)
-	addBlockCmd := flag.NewFlagSet("addblock", flag.ExitOnError)
+	//addBlockCmd := flag.NewFlagSet("addblock", flag.ExitOnError)
+	sendCmd := flag.NewFlagSet("send", flag.ExitOnError)
 	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
 
 	//2.设置命令后的参数对象
 	flagCreateBlockChainData := createBlockChainCmd.String("address", "GenesisBlock", "创建带有创世区块的区块链")
-	flagAddBlockData := addBlockCmd.String("data", "helloworld", "区块的交易数据")
+	flagSendFromData := sendCmd.String("from", "", "转账源地址")
+	flagSendToData := sendCmd.String("to", "", "转账目标地址")
+	flagSendAmountData := sendCmd.String("amount", "", "转账金额")
 
 	//3.解析
 	switch os.Args[1] {
@@ -28,8 +31,8 @@ func (cli CLI) Run() {
 		if err != nil {
 			log.Panic(err)
 		}
-	case "addblock":
-		err := addBlockCmd.Parse(os.Args[2:])
+	case "send":
+		err := sendCmd.Parse(os.Args[2:])
 		if err != nil {
 			log.Panic(err)
 		}
@@ -54,13 +57,23 @@ func (cli CLI) Run() {
 
 	}
 
-	if addBlockCmd.Parsed() {
-		fmt.Println("添加区块", *flagAddBlockData)
-		if *flagAddBlockData == "" {
+	if sendCmd.Parsed() {
+
+		if *flagSendFromData == "" || *flagSendToData == "" || *flagSendAmountData == "" {
+			fmt.Println("转账信息有误")
 			printUsage()
+			os.Exit(1)
 		}
 		//添加区块
-		cli.AddBlockToBlockChain([]*Transaction{})
+		//cli.AddBlockToBlockChain([]*Transaction{})
+		fromData := JSONToArray(*flagSendFromData)
+		toData := JSONToArray(*flagSendToData)
+		amountData := JSONToArray(*flagSendAmountData)
+		//测试 ./bc send -from '["brucefeng"]' 			   -to '["jimenghao"]'  -amount '["10"]'
+		//测试 ./bc send -from '["brucefeng","jimenghao"]'  -to '["jack","tom"]' -amount '["10","20"]'
+
+		//fmt.Printf("send -from %s -to %s -amount %s\n", fromData, toData, amountData)
+		cli.Send(fromData,toData,amountData)
 
 	}
 	if printChainCmd.Parsed() {
@@ -97,7 +110,8 @@ func printUsage() {
 	 */
 	fmt.Println("Uasge:")
 	fmt.Println("\tcreategenesisblock -address DATA --添加创世区块")
-	fmt.Println("\taddblock -data DATA --添加区块")
+	//fmt.Println("\taddblock -data DATA --添加区块")
+	fmt.Println("\tsend -from SourceAddress - to TargetAddress -amount Amount --转账交易")
 	fmt.Println("\tprintchain --打印区块")
 
 }
@@ -143,4 +157,14 @@ func (cli CLI) PrintChains() {
 		bc.PrintChains()
 
 	}
+}
+
+func (cli *CLI)Send(from ,to ,amount []string) {
+	bc := GetBlockChainObject()
+	if bc == nil {
+		fmt.Println("没有BlockChain，无法转账")
+		os.Exit(1)
+	}
+	defer bc.DB.Close()
+	bc.MineNewBlock(from ,to ,amount)
 }

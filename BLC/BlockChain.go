@@ -207,3 +207,14 @@ func (bc *BlockChain) PrintChains() {
 func (bc *BlockChain) Iterator() *BlockChainIterator {
 	return &BlockChainIterator{DB: bc.DB, CurrentHash: bc.Tip}
 }
+
+//新增功能：通过转账，创建区块
+func (bc *BlockChain)MineNewBlock(from ,to,amount []string) {
+	/*
+	1. 新建交易
+	2. 新建区块
+		读取数据库，获取最后一块block
+	3. 存入到数据库中
+	 */
+	 fmt.Println(from,to,amount)
+}
