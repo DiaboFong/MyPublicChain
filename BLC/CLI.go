@@ -18,7 +18,7 @@ func (cli CLI) Run() {
 	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
 
 	//2.设置命令后的参数对象
-	flagCreateBlockChainData := createBlockChainCmd.String("data", "GenesisBlock", "创建带有创世区块的区块链")
+	flagCreateBlockChainData := createBlockChainCmd.String("address", "GenesisBlock", "创建带有创世区块的区块链")
 	flagAddBlockData := addBlockCmd.String("data", "helloworld", "区块的交易数据")
 
 	//3.解析
@@ -50,7 +50,7 @@ func (cli CLI) Run() {
 		if *flagCreateBlockChainData == "" {
 			printUsage()
 		}
-		cli.CreateBlockChainWithGenesisBlock([]*Transaction{})
+		cli.CreateBlockChainWithGenesisBlock(*flagCreateBlockChainData)
 
 	}
 
@@ -96,18 +96,19 @@ func printUsage() {
 		printchain
 	 */
 	fmt.Println("Uasge:")
-	fmt.Println("\tcreategenesisblock -data DATA --添加创世区块")
+	fmt.Println("\tcreategenesisblock -address DATA --添加创世区块")
 	fmt.Println("\taddblock -data DATA --添加区块")
 	fmt.Println("\tprintchain --打印区块")
 
 }
 
-func (cli CLI) CreateBlockChainWithGenesisBlock(txs []*Transaction) {
+func (cli CLI) CreateBlockChainWithGenesisBlock(address string) {
 	bc := GetBlockChainObject()
-	defer bc.DB.Close()
 	if bc == nil {
-		//如果bc为空，说明并没有创世区块
-		CreateGenesisBlockToDB(txs)
+		//如果bc为空，说明并没有创世区块,此处不需要关闭DB，因为没有被Open
+		//defer bc.DB.Close()
+		CreateGenesisBlockToDB(address)
+
 	} else {
 		os.Exit(1)
 	}
@@ -115,13 +116,14 @@ func (cli CLI) CreateBlockChainWithGenesisBlock(txs []*Transaction) {
 
 func (cli CLI) AddBlockToBlockChain(txs []*Transaction) {
 	bc := GetBlockChainObject()
-	defer bc.DB.Close()
+
 	if bc == nil {
 		//如果bc为空，说明并没有创世区块
 		fmt.Println("创世区块不存在")
 		printUsage()
 		os.Exit(1)
 	} else {
+		defer bc.DB.Close()
 		bc.AddBlockToBlockChain(txs)
 
 	}
@@ -130,13 +132,14 @@ func (cli CLI) AddBlockToBlockChain(txs []*Transaction) {
 
 func (cli CLI) PrintChains() {
 	bc := GetBlockChainObject()
-	defer bc.DB.Close()
+
 	if bc == nil {
 		//如果bc为空，说明并没有创世区块
 		fmt.Println("创世区块不存在")
 		printUsage()
 		os.Exit(1)
 	} else {
+		defer bc.DB.Close()
 		bc.PrintChains()
 
 	}

@@ -31,7 +31,7 @@ type BlockChain struct {
 
 
  */
-func CreateGenesisBlockToDB(txs []*Transaction) {
+func CreateGenesisBlockToDB(address string) {
 
 	if dbExists() {
 		fmt.Println("创世区块已存在，你可以继续添加新的区块")
@@ -45,8 +45,12 @@ func CreateGenesisBlockToDB(txs []*Transaction) {
 	2.存入到数据库中
 	 */
 	//1.创建创世区块
-	genesisBlock := CreateGenesisBlock(txs)
+	//1.创建一个txs -->Coinbase
+	txCoinBase := NewCoinBaseTransaction(address)
+
+	genesisBlock := CreateGenesisBlock([]*Transaction{txCoinBase})
 	db, err := bolt.Open(DBName, 0600, nil)
+	defer db.Close()
 	if err != nil {
 		log.Panic(err)
 	}
@@ -166,8 +170,20 @@ func (bc *BlockChain) PrintChains() {
 		//fmt.Printf("区块交易:%s\n", block.Data)
 		//Data =>txs ,遍历数组获取所有的交易信息
 		fmt.Println("交易信息")
-		for _,tx := range block.Txs {
-			fmt.Printf("\t\t交易ID:%s\n",tx.TxID)
+		for _, tx := range block.Txs {
+			fmt.Printf("\t\t交易ID:%x\n", tx.TxID)
+			fmt.Println("\t\tVins:")
+			for _, txInput := range tx.Vins { //每个TxInput:TxID,vout,解锁脚本
+				fmt.Printf("\t\t\tTxID:%s\n", txInput.TxID)
+				fmt.Printf("\t\t\tVout:%d\n", txInput.Vout)
+				fmt.Printf("\t\t\tScriptSiq:%s\n", txInput.ScriptSiq)
+			}
+			fmt.Println("\t\tVouts:")
+			for _, txOutput := range tx.Vouts { //每个TxOutput:value,锁定脚本
+				fmt.Printf("\t\t\tValue:%d\n", txOutput.Value)
+				fmt.Printf("\t\t\tScriptPubkey:%s\n", txOutput.ScriptPubKey)
+
+			}
 		}
 
 		fmt.Printf("区块时间戳:%s\n", time.Unix(block.TimeStamp, 0).Format("2006-01-02 15:04:05"))

@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9bdc1b8c-786a-4f6e-985e-2f8721204227" name="Default" comment="">
+    <list default="true" id="9bdc1b8c-786a-4f6e-985e-2f8721204227" name="Default" comment="将Block结构体的Data string==&gt;TXS []*Transaction 交易数组&#10;将与data string相关的方法与函数均进行初步修改">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BLC/BlockChain.go" beforeDir="false" afterPath="$PROJECT_DIR$/BLC/BlockChain.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BLC/CLI.go" beforeDir="false" afterPath="$PROJECT_DIR$/BLC/CLI.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BLC/Transaction.go" beforeDir="false" afterPath="$PROJECT_DIR$/BLC/Transaction.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bc" beforeDir="false" afterPath="$PROJECT_DIR$/bc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blockchain.db" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain.db" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -27,11 +32,23 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Block.go" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Block.go" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/BLC/Block.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="187">
-              <caret line="33" column="24" selection-start-line="33" selection-start-column="24" selection-end-line="33" selection-end-column="24" />
+            <state relative-caret-position="1666">
+              <caret line="104" column="32" selection-start-line="104" selection-start-column="32" selection-end-line="104" selection-end-column="32" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Transaction.go" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/BLC/Transaction.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="792">
+              <caret line="53" column="20" selection-start-line="53" selection-start-column="20" selection-end-line="53" selection-end-column="20" />
+              <folding>
+                <element signature="e#13#48#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -48,11 +65,38 @@
       <file leaf-file-name="BlockChain.go" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/BLC/BlockChain.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2856">
-              <caret line="168" column="21" lean-forward="true" selection-start-line="168" selection-start-column="21" selection-end-line="168" selection-end-column="21" />
+            <state relative-caret-position="1333">
+              <caret line="177" column="59" selection-start-line="177" selection-start-column="59" selection-end-line="177" selection-end-column="59" />
               <folding>
                 <element signature="e#13#89#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="CLI.go" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/BLC/CLI.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="71">
+              <caret line="21" column="75" lean-forward="true" selection-start-line="21" selection-start-column="75" selection-end-line="21" selection-end-column="75" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Transaction_TxInput.go" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/BLC/Transaction_TxInput.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="68">
+              <caret line="4" column="31" selection-start-line="4" selection-start-column="31" selection-end-line="4" selection-end-column="31" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Transaction_TxOutput.go" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/BLC/Transaction_TxOutput.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="136">
+              <caret line="8" column="1" selection-start-line="8" selection-start-column="1" selection-end-line="8" selection-end-column="1" />
             </state>
           </provider>
         </entry>
@@ -61,7 +105,7 @@
         <entry file="file://$PROJECT_DIR$/BLC/BlockChainIterator.go">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="204">
-              <caret line="12" column="1" lean-forward="true" selection-start-line="12" selection-start-column="1" selection-end-line="12" selection-end-column="1" />
+              <caret line="12" column="1" selection-start-line="12" selection-start-column="1" selection-end-line="12" selection-end-column="1" />
               <folding>
                 <element signature="e#13#56#0" expanded="true" />
               </folding>
@@ -78,11 +122,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="main.go" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main.go">
+      <file leaf-file-name="ProofOfWork.go" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/BLC/ProofOfWork.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="153">
-              <caret line="9" selection-start-line="9" selection-end-line="9" />
+            <state relative-caret-position="376">
+              <caret line="82" column="36" selection-start-line="82" selection-start-column="36" selection-end-line="82" selection-end-column="36" />
             </state>
           </provider>
         </entry>
@@ -104,11 +148,14 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/BLC/help.go" />
-        <option value="$PROJECT_DIR$/BLC/ProofOfWork.go" />
-        <option value="$PROJECT_DIR$/BLC/Block.go" />
         <option value="$PROJECT_DIR$/BLC/Constant.go" />
         <option value="$PROJECT_DIR$/BLC/BlockChainIterator.go" />
         <option value="$PROJECT_DIR$/main.go" />
+        <option value="$PROJECT_DIR$/BLC/ProofOfWork.go" />
+        <option value="$PROJECT_DIR$/BLC/Block.go" />
+        <option value="$PROJECT_DIR$/BLC/Transaction_TxOutput.go" />
+        <option value="$PROJECT_DIR$/BLC/Transaction_TxInput.go" />
+        <option value="$PROJECT_DIR$/BLC/Transaction.go" />
         <option value="$PROJECT_DIR$/BLC/BlockChain.go" />
         <option value="$PROJECT_DIR$/BLC/CLI.go" />
       </list>
@@ -123,7 +170,7 @@
   <component name="NodePackageJsonFileManager">
     <packageJsonPaths />
   </component>
-  <component name="ProjectFrameBounds" extendedState="1">
+  <component name="ProjectFrameBounds">
     <option name="y" value="23" />
     <option name="width" value="2560" />
     <option name="height" value="1362" />
@@ -170,6 +217,11 @@
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="preferences.sourceCode.Go" />
   </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/BLC" />
+    </key>
+  </component>
   <component name="RunDashboard">
     <option name="ruleStates">
       <list>
@@ -213,10 +265,9 @@
     </recent_temporary>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="2560" height="1362" extended-state="1" />
-    <editor active="true" />
+    <frame x="0" y="23" width="2560" height="1362" extended-state="0" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.12946783" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.12946783" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
       <window_info anchor="right" id="Database" order="3" />
@@ -224,7 +275,7 @@
       <window_info anchor="bottom" id="Run" order="2" weight="0.39291465" />
       <window_info anchor="bottom" id="Version Control" order="7" weight="0.32930756" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Terminal" order="7" visible="true" weight="0.34460548" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="7" visible="true" weight="0.47181964" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.3993559" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -283,7 +334,8 @@
     <MESSAGE value="OS.ARGS与Flag" />
     <MESSAGE value="将创世区块作为命令行操作" />
     <MESSAGE value="//创建一个区块链，包含创世区块====&gt;拆解成两块内容(提供给命令行功能使用)&#10;/*&#10;1.创建创世区块CreateGenesisBlockToDB(data string)&#10;(1) 如果数据库存在，返回:创世区块已存在，退出程序&#10;&#10;(2) 如果数据库不存在，则创建创世区块&#10;&#10;&#10;&#10;2.获取BlockChain对象GetBlockChainObject()&#10;(1) 如果数据库存在，则从数据库中取数据并返回BlockChain对象&#10;(2) 如果数据库不存在，则返回创世区块不存在，请通过xxx命令行创建创世区块&#10;&#10;&#10; */" />
-    <option name="LAST_COMMIT_MESSAGE" value="//创建一个区块链，包含创世区块====&gt;拆解成两块内容(提供给命令行功能使用)&#10;/*&#10;1.创建创世区块CreateGenesisBlockToDB(data string)&#10;(1) 如果数据库存在，返回:创世区块已存在，退出程序&#10;&#10;(2) 如果数据库不存在，则创建创世区块&#10;&#10;&#10;&#10;2.获取BlockChain对象GetBlockChainObject()&#10;(1) 如果数据库存在，则从数据库中取数据并返回BlockChain对象&#10;(2) 如果数据库不存在，则返回创世区块不存在，请通过xxx命令行创建创世区块&#10;&#10;&#10; */" />
+    <MESSAGE value="将Block结构体的Data string==&gt;TXS []*Transaction 交易数组&#10;将与data string相关的方法与函数均进行初步修改" />
+    <option name="LAST_COMMIT_MESSAGE" value="将Block结构体的Data string==&gt;TXS []*Transaction 交易数组&#10;将与data string相关的方法与函数均进行初步修改" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -496,23 +548,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/BLC/ProofOfWork.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="20" column="20" selection-start-line="20" selection-start-column="20" selection-end-line="20" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/BLC/CLI.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="153">
-          <caret line="119" column="26" lean-forward="true" selection-start-line="119" selection-start-column="26" selection-end-line="119" selection-end-column="26" />
-          <folding>
-            <element signature="e#13#36#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/main.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="153">
@@ -527,30 +562,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/BLC/BlockChain.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2856">
-          <caret line="168" column="21" lean-forward="true" selection-start-line="168" selection-start-column="21" selection-end-line="168" selection-end-column="21" />
-          <folding>
-            <element signature="e#13#89#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/BLC/Constant.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="85">
           <caret line="5" column="33" selection-start-line="5" selection-start-column="33" selection-end-line="5" selection-end-column="33" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/BLC/BlockChainIterator.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
-          <caret line="12" column="1" lean-forward="true" selection-start-line="12" selection-start-column="1" selection-end-line="12" selection-end-column="1" />
-          <folding>
-            <element signature="e#13#56#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -561,10 +576,68 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/BLC/ProofOfWork.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="376">
+          <caret line="82" column="36" selection-start-line="82" selection-start-column="36" selection-end-line="82" selection-end-column="36" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/BLC/BlockChainIterator.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="204">
+          <caret line="12" column="1" selection-start-line="12" selection-start-column="1" selection-end-line="12" selection-end-column="1" />
+          <folding>
+            <element signature="e#13#56#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/BLC/Block.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="187">
-          <caret line="33" column="24" selection-start-line="33" selection-start-column="24" selection-end-line="33" selection-end-column="24" />
+        <state relative-caret-position="1666">
+          <caret line="104" column="32" selection-start-line="104" selection-start-column="32" selection-end-line="104" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/BLC/Transaction.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="792">
+          <caret line="53" column="20" selection-start-line="53" selection-start-column="20" selection-end-line="53" selection-end-column="20" />
+          <folding>
+            <element signature="e#13#48#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/BLC/Transaction_TxOutput.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="136">
+          <caret line="8" column="1" selection-start-line="8" selection-start-column="1" selection-end-line="8" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/BLC/Transaction_TxInput.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="68">
+          <caret line="4" column="31" selection-start-line="4" selection-start-column="31" selection-end-line="4" selection-end-column="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/BLC/BlockChain.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1333">
+          <caret line="177" column="59" selection-start-line="177" selection-start-column="59" selection-end-line="177" selection-end-column="59" />
+          <folding>
+            <element signature="e#13#89#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/BLC/CLI.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="71">
+          <caret line="21" column="75" lean-forward="true" selection-start-line="21" selection-start-column="75" selection-end-line="21" selection-end-column="75" />
         </state>
       </provider>
     </entry>
