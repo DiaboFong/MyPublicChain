@@ -31,7 +31,7 @@ type BlockChain struct {
 
 
  */
-func CreateGenesisBlockToDB(data string) {
+func CreateGenesisBlockToDB(txs []*Transaction) {
 
 	if dbExists() {
 		fmt.Println("创世区块已存在，你可以继续添加新的区块")
@@ -45,7 +45,7 @@ func CreateGenesisBlockToDB(data string) {
 	2.存入到数据库中
 	 */
 	//1.创建创世区块
-	genesisBlock := CreateGenesisBlock(data)
+	genesisBlock := CreateGenesisBlock(txs)
 	db, err := bolt.Open(DBName, 0600, nil)
 	if err != nil {
 		log.Panic(err)
@@ -108,7 +108,7 @@ func GetBlockChainObject() *BlockChain {
 }
 
 //添加区块到区块链中(存储至Boltdb)
-func (bc *BlockChain) AddBlockToBlockChain(data string) {
+func (bc *BlockChain) AddBlockToBlockChain(txs []*Transaction) {
 
 	err := bc.DB.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(BucketName))
@@ -117,7 +117,7 @@ func (bc *BlockChain) AddBlockToBlockChain(data string) {
 			blockBytes := bucket.Get(bc.Tip)
 			lastBlock := DeSerializeBlock(blockBytes)
 			//创建新的区块
-			newBlock := NewBlock(data, lastBlock.Hash, lastBlock.Height+1)
+			newBlock := NewBlock(txs, lastBlock.Hash, lastBlock.Height+1)
 			err := bucket.Put(newBlock.Hash, newBlock.Serialize())
 			if err != nil {
 				log.Panic(err)
@@ -163,7 +163,13 @@ func (bc *BlockChain) PrintChains() {
 		fmt.Printf("区块高度:%d\n", block.Height)
 		fmt.Printf("上一个区块哈希:%x\n", block.PrevBlockHash)
 		fmt.Printf("区块哈希:%x\n", block.Hash)
-		fmt.Printf("区块交易:%s\n", block.Data)
+		//fmt.Printf("区块交易:%s\n", block.Data)
+		//Data =>txs ,遍历数组获取所有的交易信息
+		fmt.Println("交易信息")
+		for _,tx := range block.Txs {
+			fmt.Printf("\t\t交易ID:%s\n",tx.TxID)
+		}
+
 		fmt.Printf("区块时间戳:%s\n", time.Unix(block.TimeStamp, 0).Format("2006-01-02 15:04:05"))
 		fmt.Printf("区块随机数%d\n", block.Nonce)
 		fmt.Println()

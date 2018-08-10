@@ -2,11 +2,10 @@ package BLC
 
 import (
 	"time"
-	"strconv"
 	"bytes"
-	"crypto/sha256"
 	"encoding/gob"
 	"log"
+	"crypto/sha256"
 )
 
 //1.定义一个Block
@@ -17,8 +16,9 @@ type Block struct {
 	Height int64
 	//上一个区块的Hash值
 	PrevBlockHash []byte
-	//交易数据
-	Data []byte
+	//交易数据 ==>修改为Txs，交易数组
+	//Data []byte
+	Txs []*Transaction
 	//时间戳
 	TimeStamp int64
 	//区块自己的Hash值
@@ -28,9 +28,9 @@ type Block struct {
 }
 
 //2. 定义一个函数用于创建一个区块
-func NewBlock(data string, prevBlock []byte, height int64) *Block {
+func NewBlock(txs []*Transaction, prevBlock []byte, height int64) *Block {
 	//创建区块
-	block := &Block{Height: height, PrevBlockHash: prevBlock, Data: []byte(data), TimeStamp: time.Now().Unix()}
+	block := &Block{Height: height, PrevBlockHash: prevBlock, Txs: txs, TimeStamp: time.Now().Unix()}
 	//设置区块Hash ===> 通过POW方法计算出Hash值
 	/*	block.SetHash()
 		return block*/
@@ -42,8 +42,8 @@ func NewBlock(data string, prevBlock []byte, height int64) *Block {
 	return block
 }
 
-//3. 设置区块的Hash值
-func (block *Block) SetHash() {
+//3. 设置区块的Hash值 ===>通过工作量证明来获取
+/*func (block *Block) SetHash() {
 	//可以通过当前的block属性值来生成Hash，保存为[]byte
 	//1. 转Height
 	heightBytes := IntToHex(block.Height)
@@ -62,12 +62,12 @@ func (block *Block) SetHash() {
 	hash := sha256.Sum256(blockBytes)
 	block.Hash = hash[:]
 
-}
+}*/
 
 //4.生成创世区块
-func CreateGenesisBlock(data string) *Block {
+func CreateGenesisBlock(txs []*Transaction) *Block {
 
-	return NewBlock(data, []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0)
+	return NewBlock(txs, make([]byte, 32, 32), 0)
 
 }
 
@@ -98,5 +98,25 @@ func DeSerializeBlock(blockBytes []byte) *Block {
 		log.Panic(err)
 	}
 	return block
+
+}
+
+//定义一个方法，用于将Block中的交易txs转为[]byte数组
+func (block *Block) HashTransactions() []byte {
+	//1.创建一个二维数组，存储每笔交易的txid
+	var txsHashes [][]byte
+	//2.遍历
+	for _, tx := range block.Txs {
+		/*
+		tx1,tx2,tx3,tx4,tx5 ...
+		[][]{tx1.ID,tx2.ID,tx3.ID.....}
+		合并-->[]byte-->sha256
+		 */
+		txsHashes = append(txsHashes, tx.TxID)
+
+	}
+	//3. 生成Hash
+	txsHash := sha256.Sum256(bytes.Join(txsHashes, []byte{}))
+	return txsHash[:]
 
 }

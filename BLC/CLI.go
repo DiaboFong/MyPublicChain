@@ -50,7 +50,7 @@ func (cli CLI) Run() {
 		if *flagCreateBlockChainData == "" {
 			printUsage()
 		}
-		cli.CreateBlockChainWithGenesisBlock(*flagCreateBlockChainData)
+		cli.CreateBlockChainWithGenesisBlock([]*Transaction{})
 
 	}
 
@@ -60,7 +60,7 @@ func (cli CLI) Run() {
 			printUsage()
 		}
 		//添加区块
-		cli.AddBlockToBlockChain(*flagAddBlockData)
+		cli.AddBlockToBlockChain([]*Transaction{})
 
 	}
 	if printChainCmd.Parsed() {
@@ -102,18 +102,18 @@ func printUsage() {
 
 }
 
-func (cli CLI) CreateBlockChainWithGenesisBlock(data string) {
+func (cli CLI) CreateBlockChainWithGenesisBlock(txs []*Transaction) {
 	bc := GetBlockChainObject()
 	defer bc.DB.Close()
 	if bc == nil {
 		//如果bc为空，说明并没有创世区块
-		CreateGenesisBlockToDB(data)
+		CreateGenesisBlockToDB(txs)
 	} else {
 		os.Exit(1)
 	}
 }
 
-func (cli CLI) AddBlockToBlockChain(data string) {
+func (cli CLI) AddBlockToBlockChain(txs []*Transaction) {
 	bc := GetBlockChainObject()
 	defer bc.DB.Close()
 	if bc == nil {
@@ -122,7 +122,7 @@ func (cli CLI) AddBlockToBlockChain(data string) {
 		printUsage()
 		os.Exit(1)
 	} else {
-		bc.AddBlockToBlockChain(data)
+		bc.AddBlockToBlockChain(txs)
 
 	}
 
