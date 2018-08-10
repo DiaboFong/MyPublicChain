@@ -7,6 +7,7 @@ import (
 	"log"
 	"time"
 	"math/big"
+	"strconv"
 )
 
 //定义一个区块链(区块的数组)
@@ -174,7 +175,7 @@ func (bc *BlockChain) PrintChains() {
 			fmt.Printf("\t\t交易ID:%x\n", tx.TxID)
 			fmt.Println("\t\tVins:")
 			for _, txInput := range tx.Vins { //每个TxInput:TxID,vout,解锁脚本
-				fmt.Printf("\t\t\tTxID:%s\n", txInput.TxID)
+				fmt.Printf("\t\t\tTxID:%x\n", txInput.TxID)
 				fmt.Printf("\t\t\tVout:%d\n", txInput.Vout)
 				fmt.Printf("\t\t\tScriptSiq:%s\n", txInput.ScriptSiq)
 			}
@@ -209,12 +210,57 @@ func (bc *BlockChain) Iterator() *BlockChainIterator {
 }
 
 //新增功能：通过转账，创建区块
-func (bc *BlockChain)MineNewBlock(from ,to,amount []string) {
+func (bc *BlockChain) MineNewBlock(from, to, amount []string) {
 	/*
 	1. 新建交易
 	2. 新建区块
 		读取数据库，获取最后一块block
 	3. 存入到数据库中
 	 */
-	 fmt.Println(from,to,amount)
+	//1. 新建交易
+	var txs []*Transaction
+
+	//amount[0] -->int
+	amountInt, _ := strconv.ParseInt(amount[0], 10, 64)
+	tx := NewSimpleTransaction(from[0], to[0], amountInt)
+	txs = append(txs, tx)
+
+	//2. 新建区块
+	newBlock := new(Block)
+	err := bc.DB.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(BucketName))
+		if bucket != nil {
+			//读取数据库
+			blockBytes := bucket.Get(bc.Tip)
+			lastBlock := DeSerializeBlock(blockBytes)
+			newBlock = NewBlock(txs, lastBlock.Hash, lastBlock.Height+1)
+
+		}
+
+		return nil
+
+	})
+	if err != nil {
+		log.Panic(err)
+	}
+
+	//3. 存入到数据库中
+	err = bc.DB.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(BucketName))
+		if bucket != nil {
+			//将新block存入到数据中
+			bucket.Put(newBlock.Hash, newBlock.Serialize())
+			//更新l对应的值
+			bucket.Put([]byte("l"), newBlock.Hash)
+			//更新Tip
+			bc.Tip = newBlock.Hash
+
+		}
+		return nil
+
+	})
+	if err != nil {
+		log.Panic(err)
+	}
+
 }
