@@ -264,3 +264,25 @@ func (bc *BlockChain) MineNewBlock(from, to, amount []string) {
 	}
 
 }
+
+//4. 查询余额,即查询某个账户的未花费的Output
+func (bc *BlockChain) GetBalance(address string) int64 {
+
+	txOutputs := bc.UnSpent(address)
+	var total int64
+	for _, txOutput := range txOutputs {
+		total += txOutput.Value
+	}
+	return total
+
+}
+
+//定义方法，用于获取指定用户的所有未花费(UnSpent)的Txoutput
+/*
+UTXO模型
+Unspent Transaction TxOutput
+ */
+func (bc *BlockChain) UnSpent(address string) []*TxOutput {
+
+	return nil
+}

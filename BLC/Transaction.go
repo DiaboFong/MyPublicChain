@@ -65,7 +65,7 @@ func NewSimpleTransaction(from, to string, amount int64) *Transaction {
 	//2.创建Input,暂时写固定数值
 	idBytes, _ := hex.DecodeString("9d55992f32659a797871a0536961ff84c406b6fb69f2d79947a377d3542582ee")
 
-	txInput := &TxInput{TxID: idBytes, Vout: 0, ScriptSiq: from}
+	txInput := &TxInput{TxID: idBytes, Vout: 1, ScriptSiq: from}
 	txInputs = append(txInputs, txInput)
 
 	//3.创建OutPut
