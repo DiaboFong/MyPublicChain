@@ -8,6 +8,7 @@ import (
 	"time"
 	"math/big"
 	"strconv"
+	"encoding/hex"
 )
 
 //定义一个区块链(区块的数组)
@@ -283,6 +284,82 @@ UTXO模型
 Unspent Transaction TxOutput
  */
 func (bc *BlockChain) UnSpent(address string) []*TxOutput {
+
+	/*
+	1. 遍历数据库，获取每个Block的Txs
+	2. 遍历所有交易：
+	Inputs ,将数据记录为已经花费
+	Outputs ,将每个output和input进行对比，如果有关联，则表示已经花费，如果没有任何关联，表示为未花费
+
+	 */
+
+	//存储未花费的TxOutput
+	var unSpentTxOutput []*TxOutput
+	//存储已经花费的TxOutput。map[TxID][]int{vout...}
+	spentTxOutPutMap := make(map[string][]int) //map[TxID]=[]int{vout}
+
+	iterator := bc.Iterator()
+	for {
+		//1.获取每个Block
+		block := iterator.Next()
+
+		//2.遍历该Block的txs
+		for _, tx := range block.Txs {
+			//遍历每个Tx:TxID,Vins,Vouts
+			//遍历TxInput ,已经花费的
+			if !tx.IsCoinBaseTransaction() { //tx不是CoinBase交易，则遍历其Vints
+				for _, txInput := range tx.Vins {
+					//in ： TxID,Vout,SciptSiq
+					if txInput.UnlockWithAddress(address) { //如果Input中的解锁脚本是传入的address，则将
+						//txInput的解锁脚本(用户名)如果和要查询余额的用户名一致相同
+						key := hex.EncodeToString(txInput.TxID)
+						spentTxOutPutMap[key] = append(spentTxOutPutMap[key], txInput.Vout)
+						/*
+						map[key] --> value
+						map[key] --> []int
+						 */
+
+					}
+
+				}
+			}
+			//遍历TxOutput,未花费的
+			outputs:
+			for index, txOutput := range tx.Vouts {
+				if txOutput.UnlockWithAddress(address) {
+					if len(spentTxOutPutMap) != 0 {
+						//遍历map
+						var isSpentOutput bool //false
+						for txID, indexArray := range spentTxOutPutMap {
+							//遍历记录已经花费的下标的数组
+							for _, i := range indexArray {
+								if i == index && hex.EncodeToString(tx.TxID) == txID {
+									isSpentOutput = true //标记当前的txOutput是否花费
+									continue outputs
+								}
+							}
+
+						}
+						if !isSpentOutput {
+							unSpentTxOutput = append(unSpentTxOutput, txOutput)
+
+						}
+
+					} else { //如果map长度为0,那么证明还没有花费记录，那么表示未花费，output无需花费
+						unSpentTxOutput = append(unSpentTxOutput, txOutput)
+
+					}
+				}
+			}
+		}
+
+		//3.判断退出
+		hashInt := new(big.Int)
+		hashInt.SetBytes(block.PrevBlockHash)
+		if big.NewInt(0).Cmp(hashInt) == 0 {
+			break
+		}
+	}
 
 	return nil
 }

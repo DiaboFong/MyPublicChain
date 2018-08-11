@@ -84,3 +84,9 @@ func NewSimpleTransaction(from, to string, amount int64) *Transaction {
 	return tx
 
 }
+
+//判断tx是否为CoinBase交易
+func (tx *Transaction) IsCoinBaseTransaction() bool {
+	return len(tx.Vins[0].TxID) == 0 && tx.Vins[0].Vout == -1
+
+}
