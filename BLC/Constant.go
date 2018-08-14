@@ -1,6 +1,5 @@
 package BLC
 
-//用于定义一些常量
-
-const DBName = "blockchain.db" //数据库的名字
-const BucketName = "blocks"    //定义Bucket名字
+//专程存储一些常量值
+const DBName  = "blockchain.db" //数据库的名字
+const BlockBucketName = "blocks" //定义bucket

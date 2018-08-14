@@ -7,12 +7,13 @@ import (
 	"encoding/json"
 )
 
-//将一个Int64的整数:转为二进制后，每8bit一个byte,转为[]byte
-
-func IntToHex(num int64) []byte { //unit8 -->0-255
+/*
+将一个int64的整数：转为二进制后，每8bit一个byte。转为[]byte
+ */
+func IntToHex(num int64) []byte {
 	buff := new(bytes.Buffer)
 	//将二进制数据写入w
-	//func Write(w io.Writer,order ByteOrder,data interface{})error
+	//func Write(w io.Writer, order ByteOrder, data interface{}) error
 	err := binary.Write(buff, binary.BigEndian, num)
 	if err != nil {
 		log.Panic(err)
@@ -22,11 +23,11 @@ func IntToHex(num int64) []byte { //unit8 -->0-255
 }
 
 /*
-JSON解析函数，JSON字符串转成数组
- */
+json解析的的函数
 
+*/
 func JSONToArray(jsonString string) []string {
-	var arr []string
+	var arr [] string
 	err := json.Unmarshal([]byte(jsonString), &arr)
 	if err != nil {
 		log.Panic(err)
