@@ -1,8 +1,6 @@
 package main
 
-import (
-	"publicchain1803/day04_02_Transaction_多笔交易/BLC"
-)
+import "MyPublicChain/BLC"
 
 func main() {
 
@@ -101,10 +99,11 @@ func main() {
 
 	//CLI
 	//blockchain:=BLC.CreateBlockChainWithGenesisBlock("Genesisblock..data...")
-	cli:=BLC.CLI{}
+	cli := BLC.CLI{}
 	cli.Run()
 
 }
+
 /*
 数据库中：
  */

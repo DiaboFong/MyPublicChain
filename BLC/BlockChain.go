@@ -236,7 +236,7 @@ func (bc *BlockChain) MineNewBlock(from, to, amount []string) {
 	for i := 0; i < len(from); i++ {
 		//amount[0]-->int
 		amountInt, _ := strconv.ParseInt(amount[i], 10, 64)
-		tx := NewSimpleTransaction(from[i], to[i], amountInt, bc,txs)
+		tx := NewSimpleTransaction(from[i], to[i], amountInt, bc, txs)
 		txs = append(txs, tx)
 
 	}
@@ -285,9 +285,9 @@ func (bc *BlockChain) MineNewBlock(from, to, amount []string) {
 }
 
 //提供一个功能：查询余额
-func (bc *BlockChain) GetBalance(address string,txs[] *Transaction) int64 {
+func (bc *BlockChain) GetBalance(address string, txs [] *Transaction) int64 {
 	//txOutputs := bc.UnSpent(address)
-	unSpentUTXOs := bc.UnSpent(address,txs)
+	unSpentUTXOs := bc.UnSpent(address, txs)
 
 	var total int64
 	for _, utxo := range unSpentUTXOs {
@@ -317,11 +317,9 @@ func (bc *BlockChain) UnSpent(address string, txs [] *Transaction) []*UTXO { //�
 	spentTxOutputMap := make(map[string][]int) // map[TxID] = []int{vout}
 
 	//第一部分：先查询本次转账，已经产生了的Transanction
-	for i := len(txs)-1;i>=0;i--{
-		unSpentUTXOs = caculate(txs[i],address,spentTxOutputMap,unSpentUTXOs)
+	for i := len(txs) - 1; i >= 0; i-- {
+		unSpentUTXOs = caculate(txs[i], address, spentTxOutputMap, unSpentUTXOs)
 	}
-
-
 
 	//第二部分：数据库里的Trasacntion
 
@@ -334,7 +332,7 @@ func (bc *BlockChain) UnSpent(address string, txs [] *Transaction) []*UTXO { //�
 		//for _, tx := range block.Txs {
 		//倒序遍历Transaction
 		for i := len(block.Txs) - 1; i >= 0; i-- {
-			unSpentUTXOs = caculate(block.Txs[i],address,spentTxOutputMap,unSpentUTXOs)
+			unSpentUTXOs = caculate(block.Txs[i], address, spentTxOutputMap, unSpentUTXOs)
 		}
 
 		//3.判断推出
@@ -349,68 +347,65 @@ func (bc *BlockChain) UnSpent(address string, txs [] *Transaction) []*UTXO { //�
 	return unSpentUTXOs
 }
 
+func caculate(tx *Transaction, address string, spentTxOutputMap map[string][]int, unSpentUTXOs []*UTXO) []*UTXO {
+	//遍历每个tx：txID，Vins，Vouts
 
-func caculate(tx *Transaction,address string, spentTxOutputMap map[string][]int,unSpentUTXOs []*UTXO) []*UTXO{
-		//遍历每个tx：txID，Vins，Vouts
-
-		//遍历所有的TxInput
-		if !tx.IsCoinBaseTransaction() { //tx不是CoinBase交易，遍历TxInput
-			for _, txInput := range tx.Vins {
-				//txInput-->TxInput
-				if txInput.UnlockWithAddress(address) {
-					//txInput的解锁脚本(用户名) 如果和钥查询的余额的用户名相同，
-					key := hex.EncodeToString(txInput.TxID)
-					spentTxOutputMap[key] = append(spentTxOutputMap[key], txInput.Vout)
-					/*
-					map[key]-->value
-					map[key] -->[]int
-					 */
-				}
+	//遍历所有的TxInput
+	if !tx.IsCoinBaseTransaction() { //tx不是CoinBase交易，遍历TxInput
+		for _, txInput := range tx.Vins {
+			//txInput-->TxInput
+			if txInput.UnlockWithAddress(address) {
+				//txInput的解锁脚本(用户名) 如果和钥查询的余额的用户名相同，
+				key := hex.EncodeToString(txInput.TxID)
+				spentTxOutputMap[key] = append(spentTxOutputMap[key], txInput.Vout)
+				/*
+				map[key]-->value
+				map[key] -->[]int
+				 */
 			}
 		}
+	}
 
-		//遍历所有的TxOutput
-	outputs:
-		for index, txOutput := range tx.Vouts { //index= 0,txoutput.锁定脚本：王二狗
-			if txOutput.UnlockWithAddress(address) {
-				if len(spentTxOutputMap) != 0 {
-					var isSpentOutput bool //false
-					//遍历map
-					for txID, indexArray := range spentTxOutputMap { //143d,[]int{1}
-						//遍历 记录已经花费的下标的数组
-						for _, i := range indexArray {
-							if i == index && hex.EncodeToString(tx.TxID) == txID {
-								isSpentOutput = true //标记当前的txOutput是已经花费
-								continue outputs
-							}
+	//遍历所有的TxOutput
+outputs:
+	for index, txOutput := range tx.Vouts { //index= 0,txoutput.锁定脚本：王二狗
+		if txOutput.UnlockWithAddress(address) {
+			if len(spentTxOutputMap) != 0 {
+				var isSpentOutput bool //false
+				//遍历map
+				for txID, indexArray := range spentTxOutputMap { //143d,[]int{1}
+					//遍历 记录已经花费的下标的数组
+					for _, i := range indexArray {
+						if i == index && hex.EncodeToString(tx.TxID) == txID {
+							isSpentOutput = true //标记当前的txOutput是已经花费
+							continue outputs
 						}
 					}
+				}
 
-					if !isSpentOutput {
-						//unSpentTxOutput = append(unSpentTxOutput, txOutput)
-						//根据未花费的output，创建utxo对象--->数组
-						utxo := &UTXO{tx.TxID, index, txOutput}
-						unSpentUTXOs = append(unSpentUTXOs, utxo)
-					}
-
-				} else {
-					//如果map长度未0,证明还没有花费记录，output无需判断
+				if !isSpentOutput {
 					//unSpentTxOutput = append(unSpentTxOutput, txOutput)
+					//根据未花费的output，创建utxo对象--->数组
 					utxo := &UTXO{tx.TxID, index, txOutput}
 					unSpentUTXOs = append(unSpentUTXOs, utxo)
 				}
+
+			} else {
+				//如果map长度未0,证明还没有花费记录，output无需判断
+				//unSpentTxOutput = append(unSpentTxOutput, txOutput)
+				utxo := &UTXO{tx.TxID, index, txOutput}
+				unSpentUTXOs = append(unSpentUTXOs, utxo)
 			}
 		}
-		return unSpentUTXOs
+	}
+	return unSpentUTXOs
 
 }
-
-
 
 /*
 提供一个方法，用于一次转账的交易中，可以使用为花费的utxo
  */
-func (bc *BlockChain) FindSpentableUTXOs(from string, amount int64,txs[]*Transaction) (int64, map[string][]int) {
+func (bc *BlockChain) FindSpentableUTXOs(from string, amount int64, txs []*Transaction) (int64, map[string][]int) {
 	/*
 	1.根据from获取到的所有的utxo
 	2.遍历utxos，累加余额，判断，是否如果余额，大于等于要要转账的金额，
@@ -421,7 +416,7 @@ func (bc *BlockChain) FindSpentableUTXOs(from string, amount int64,txs[]*Transac
 	var total int64
 	spentableMap := make(map[string][]int)
 	//1.获取所有的utxo ：10
-	utxos := bc.UnSpent(from,txs)
+	utxos := bc.UnSpent(from, txs)
 	//2.找即将使用utxo：3个utxo
 	for _, utxo := range utxos {
 		total += utxo.Output.Value
