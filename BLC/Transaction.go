@@ -56,24 +56,33 @@ func (tx *Transaction) SetID() {
 
 }
 
-//根据转账信息，创建一个普通的信息
-func NewSimpleTransaction(from, to string, amount int64) *Transaction {
+//根据转账信息，创建一个普通的交易
+func NewSimpleTransaction(from, to string, amount int64, bc *BlockChain) *Transaction {
 	//1.定义Input和Output的数组
 	var txInputs []*TxInput
 	var txOutputs []*TxOutput
 
 	//2.创建Input,暂时写固定数值
-	idBytes, _ := hex.DecodeString("9d55992f32659a797871a0536961ff84c406b6fb69f2d79947a377d3542582ee")
+	/*获取本次转账要使用的output
 
-	txInput := &TxInput{TxID: idBytes, Vout: 1, ScriptSiq: from}
-	txInputs = append(txInputs, txInput)
+	 */
+	total, spentableUTXO := bc.FindSpentableUTXOs(from, amount) //map[txID] -->[]int{index}
+	//遍历Map，获取交易ID
+	for txID, indexArray := range spentableUTXO {
+		txIDBytes, _ := hex.DecodeString(txID)
+		for _, index := range indexArray {
+			txInput := &TxInput{TxID: txIDBytes, Vout: index, ScriptSiq: from}
+			txInputs = append(txInputs, txInput)
+		}
+
+	}
 
 	//3.创建OutPut
 	//转账
 	txOutput := &TxOutput{Value: amount, ScriptPubKey: to}
 	txOutputs = append(txOutputs, txOutput)
 	//找零
-	txOutput2 := &TxOutput{Value: 7 - amount, ScriptPubKey: from}
+	txOutput2 := &TxOutput{Value: total - amount, ScriptPubKey: from}
 	txOutputs = append(txOutputs, txOutput2)
 
 	//4.创建交易
