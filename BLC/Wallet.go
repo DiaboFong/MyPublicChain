@@ -28,7 +28,7 @@ func newKeyPair() (ecdsa.PrivateKey, []byte) {
 
 		椭圆曲线加密：(ECC：ellipse curve Cryptography)，非对称加密
 			加密：
-				对称加密和非对称机密啊
+			对称加密和非对称机密
 
 			SECP256K1,算法
 
