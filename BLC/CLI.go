@@ -30,7 +30,7 @@ func (cli *CLI) Run() {
 	isValidArgs()
 
 	//1.创建flagset命令对象
-
+	createWalletCmd := flag.NewFlagSet("createwallet", flag.ExitOnError)
 	CreateBlockChainCmd := flag.NewFlagSet("createblockchain", flag.ExitOnError)
 	sendCmd := flag.NewFlagSet("send", flag.ExitOnError)
 	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
@@ -47,6 +47,12 @@ func (cli *CLI) Run() {
 
 	//3.解析
 	switch os.Args[1] {
+	case "createwallet":
+		err := createWalletCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+
 	case "send":
 		err := sendCmd.Parse(os.Args[2:])
 		if err != nil {
@@ -131,13 +137,12 @@ func isValidArgs() {
 //添加程序运行的说明
 func printUsage() {
 	fmt.Println("Usage:")
+	fmt.Println("\tcreatewallet  -- 创建钱包")
 	fmt.Println("\tcreateblockchain -address DATA -- 创建创世区块")
 	fmt.Println("\tsend -from From -to To -amount Amount -- 转账交易")
 	fmt.Println("\tprintchain -- 打印区块")
 	fmt.Println("\tgetbalance -address Data -- 查询余额")
 }
-
-
 
 //func (cli *CLI) AddBlockToBlockChain(txs []*Transaction) {
 //	//cli.BlockChain.AddBlockToBlockChain(data)
@@ -149,9 +154,3 @@ func printUsage() {
 //	defer bc.DB.Close()
 //	bc.AddBlockToBlockChain(txs)
 //}
-
-
-
-
-
-

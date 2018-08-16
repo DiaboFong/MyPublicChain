@@ -16,5 +16,14 @@ func main() {
 	fmt.Println(string(address))
 	fmt.Println("地址是否有效:", BLC.IsVaildAddress(address))
 	fmt.Println("地址是否有效:", BLC.IsVaildAddress([]byte("brucefeng")))
+	//测试钱包集合
+
+	wallets := BLC.NewWallets()
+	fmt.Println(wallets)
+	wallets.CreateNewWallet()
+	wallets.CreateNewWallet()
+	fmt.Println(wallets)
+
+
 
 }
