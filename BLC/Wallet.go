@@ -109,21 +109,20 @@ func CheckSum(payload []byte) []byte {
 	return secondHash[:addressCheckSumLen]
 }
 
-
 //校验地址是否有效
-func IsVaildAddress(address []byte)bool{
+func IsVaildAddress(address []byte) bool {
 
 	//1. Base58解码
 	// version+pubkeyHash + checksum
 	full_payload := Base58Decode(address) //25
 	//2. 获取地址中携带的CheckSum
 	checkSumBytesOld := full_payload[len(full_payload)-addressCheckSumLen:] //[21:]
-	version_payload := full_payload[:len(full_payload)-addressCheckSumLen] //[:21]
+	version_payload := full_payload[:len(full_payload)-addressCheckSumLen]  //[:21]
 
 	//3.使用version_payload生成一次校验码
 	checkSumBytesNew := CheckSum(version_payload)
 
 	//4. 比较checkSumBytesOld与checkSumBytesNew
-	return bytes.Compare(checkSumBytesOld,checkSumBytesNew) == 0
+	return bytes.Compare(checkSumBytesOld, checkSumBytesNew) == 0
 
 }

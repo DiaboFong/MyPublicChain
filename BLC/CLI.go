@@ -31,6 +31,7 @@ func (cli *CLI) Run() {
 
 	//1.创建flagset命令对象
 	createWalletCmd := flag.NewFlagSet("createwallet", flag.ExitOnError)
+	getAddressListsCmd := flag.NewFlagSet("getaddresslists", flag.ExitOnError)
 	CreateBlockChainCmd := flag.NewFlagSet("createblockchain", flag.ExitOnError)
 	sendCmd := flag.NewFlagSet("send", flag.ExitOnError)
 	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
@@ -49,6 +50,12 @@ func (cli *CLI) Run() {
 	switch os.Args[1] {
 	case "createwallet":
 		err := createWalletCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+
+	case "getaddresslists":
+		err := getAddressListsCmd.Parse(os.Args[2:])
 		if err != nil {
 			log.Panic(err)
 		}
@@ -97,6 +104,14 @@ func (cli *CLI) Run() {
 		//fmt.Println(from)
 		//fmt.Println(to)
 		//fmt.Println(amount)
+		for i := 0; i < len(from); i++ {
+			if !IsVaildAddress([]byte(from[i])) || !IsVaildAddress([]byte(to[i])) {
+				fmt.Println("地址无效，无法转账")
+				printUsage()
+				os.Exit(1)
+			}
+		}
+
 		cli.Send(from, to, amount)
 	}
 
@@ -108,7 +123,9 @@ func (cli *CLI) Run() {
 
 	//添加创世区块的创建
 	if CreateBlockChainCmd.Parsed() {
-		if *flagCreateBlockChainData == "" {
+		//if *flagCreateBlockChainData == "" {
+		if !IsVaildAddress([]byte(*flagCreateBlockChainData)) {
+			fmt.Println("地址无效，无法创建创世区块")
 			printUsage()
 			os.Exit(1)
 		}
@@ -116,7 +133,8 @@ func (cli *CLI) Run() {
 	}
 
 	if getBalanceCmd.Parsed() {
-		if *flagGetBalanceData == "" {
+		//if *flagGetBalanceData == "" {
+		if !IsVaildAddress([]byte(*flagGetBalanceData)) {
 			fmt.Println("查询地址有误。。")
 			printUsage()
 			os.Exit(1)
@@ -124,6 +142,14 @@ func (cli *CLI) Run() {
 		cli.GetBalance(*flagGetBalanceData)
 	}
 
+	if createWalletCmd.Parsed() {
+		//创建钱包  --> 交易地址
+		cli.CreateWallet()
+	}
+
+	if getAddressListsCmd.Parsed() {
+		cli.GetAddressLists()
+	}
 }
 
 //判断终端输入的参数的长度
@@ -138,6 +164,7 @@ func isValidArgs() {
 func printUsage() {
 	fmt.Println("Usage:")
 	fmt.Println("\tcreatewallet  -- 创建钱包")
+	fmt.Println("\tgetaddresslists  -- 获取所有的钱包地址")
 	fmt.Println("\tcreateblockchain -address DATA -- 创建创世区块")
 	fmt.Println("\tsend -from From -to To -amount Amount -- 转账交易")
 	fmt.Println("\tprintchain -- 打印区块")
