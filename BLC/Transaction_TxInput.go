@@ -1,5 +1,7 @@
 package BLC
 
+import "bytes"
+
 type TxInput struct {
 	//1.交易ID：引用的TxOutput所在的交易ID
 	TxID []byte
@@ -8,10 +10,13 @@ type TxInput struct {
 	Vout int
 
 	//3.输入脚本，也就是解锁脚本。暂时理解为用户名
-	ScriptSiq string
+	//ScriptSiq string
+	Signature []byte //数字签名
+	PublicKey []byte //原始公钥，钱包里的公钥
 }
 
 //判断TxInput是否时指定的用户消费
-func (txInput *TxInput) UnlockWithAddress(address string) bool{
-	return txInput.ScriptSiq == address
+func (txInput *TxInput) UnlockWithAddress(pubKeyHash []byte) bool {
+	pubKeyHashNew := PubKeyHash(txInput.PublicKey)
+	return bytes.Compare(pubKeyHash, pubKeyHashNew) == 0
 }

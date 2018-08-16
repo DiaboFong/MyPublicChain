@@ -25,8 +25,9 @@ type Transaction struct {
  */
 
 func NewCoinBaseTransaction(address string) *Transaction {
-	txInput := &TxInput{[]byte{}, -1, "Genesis Data"}
-	txOutput := &TxOutput{10, address}
+	txInput := &TxInput{[]byte{}, -1, nil, nil}
+	//txOutput := &TxOutput{10, address}
+	txOutput := NewTxOutput(10, address)
 	txCoinBaseTransaction := &Transaction{[]byte{}, []*TxInput{txInput}, []*TxOutput{txOutput}}
 	//设置交易ID
 	txCoinBaseTransaction.SetID()
@@ -49,7 +50,7 @@ func (tx *Transaction) SetID() {
 }
 
 //根据转账的信息，创建一个普通的交易
-func NewSimpleTransaction(from, to string, amount int64,bc *BlockChain,txs []*Transaction) *Transaction {
+func NewSimpleTransaction(from, to string, amount int64, bc *BlockChain, txs []*Transaction) *Transaction {
 	//1.定义Input和Output的数组
 	var txInputs []*TxInput
 	var txOuputs [] *TxOutput
@@ -59,17 +60,18 @@ func NewSimpleTransaction(from, to string, amount int64,bc *BlockChain,txs []*Tr
 	创世区块中交易ID：c16d3ad93450cd532dcd7ef53d8f396e46b2e59aa853ad44c284314c7b9db1b4
 	 */
 
-	 //获取本次转账要使用output
-	 total,spentableUTXO := bc.FindSpentableUTXOs(from,amount,txs) //map[txID]-->[]int{index}
-
-	 for txID,indexArray:=range spentableUTXO{
-	 	txIDBytes,_:=hex.DecodeString(txID)
-	 	for _,index:=range indexArray{
-			txInput := &TxInput{txIDBytes, index, from}
+	//获取本次转账要使用output
+	total, spentableUTXO := bc.FindSpentableUTXOs(from, amount, txs) //map[txID]-->[]int{index}
+	//获取钱包的集合:
+	wallets := NewWallets()
+	wallet := wallets.WalletMap[from]
+	for txID, indexArray := range spentableUTXO {
+		txIDBytes, _ := hex.DecodeString(txID)
+		for _, index := range indexArray {
+			txInput := &TxInput{txIDBytes, index, nil, wallet.PublicKey}
 			txInputs = append(txInputs, txInput)
 		}
-	 }
-
+	}
 
 	//idBytes, _ := hex.DecodeString("c16d3ad93450cd532dcd7ef53d8f396e46b2e59aa853ad44c284314c7b9db1b4")
 	//idBytes, _ := hex.DecodeString("143d7db0d5cce24645edb2ba0b503fe15969ade0c721edfd3578cd731c563a16")
@@ -79,11 +81,13 @@ func NewSimpleTransaction(from, to string, amount int64,bc *BlockChain,txs []*Tr
 	//3.创建Output
 
 	//转账
-	txOutput := &TxOutput{amount, to}
+	//txOutput := &TxOutput{amount, to}
+	txOutput := NewTxOutput(amount,to)
 	txOuputs = append(txOuputs, txOutput)
 
 	//找零
-	txOutput2 := &TxOutput{total - amount, from}
+	//txOutput2 := &TxOutput{total - amount, from}
+	txOutput2 := NewTxOutput(total-amount,from)
 	txOuputs = append(txOuputs, txOutput2)
 
 	//创建交易
