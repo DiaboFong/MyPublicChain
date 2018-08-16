@@ -14,4 +14,7 @@ func main() {
 	address := wallet.GetAdrress()
 	fmt.Println(address)
 	fmt.Println(string(address))
+	fmt.Println("地址是否有效:", BLC.IsVaildAddress(address))
+	fmt.Println("地址是否有效:", BLC.IsVaildAddress([]byte("brucefeng")))
+
 }
