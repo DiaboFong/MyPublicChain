@@ -6,6 +6,8 @@ import (
 	"log"
 	"crypto/sha256"
 	"encoding/hex"
+	"crypto/ecdsa"
+	"crypto/rand"
 )
 
 //定义交易的数据
@@ -62,9 +64,11 @@ func NewSimpleTransaction(from, to string, amount int64, bc *BlockChain, txs []*
 
 	//获取本次转账要使用output
 	total, spentableUTXO := bc.FindSpentableUTXOs(from, amount, txs) //map[txID]-->[]int{index}
-	//获取钱包的集合:
+
+	//获取钱包的集合：
 	wallets := NewWallets()
 	wallet := wallets.WalletMap[from]
+
 	for txID, indexArray := range spentableUTXO {
 		txIDBytes, _ := hex.DecodeString(txID)
 		for _, index := range indexArray {
@@ -82,12 +86,12 @@ func NewSimpleTransaction(from, to string, amount int64, bc *BlockChain, txs []*
 
 	//转账
 	//txOutput := &TxOutput{amount, to}
-	txOutput := NewTxOutput(amount,to)
+	txOutput := NewTxOutput(amount, to)
 	txOuputs = append(txOuputs, txOutput)
 
 	//找零
 	//txOutput2 := &TxOutput{total - amount, from}
-	txOutput2 := NewTxOutput(total-amount,from)
+	txOutput2 := NewTxOutput(total-amount, from)
 	txOuputs = append(txOuputs, txOutput2)
 
 	//创建交易
@@ -95,6 +99,10 @@ func NewSimpleTransaction(from, to string, amount int64, bc *BlockChain, txs []*
 
 	//设置交易的ID
 	tx.SetID()
+
+	//设置签名
+	bc.SignTransaction(tx, wallet.PrivateKey)
+
 	return tx
 
 }
@@ -103,4 +111,114 @@ func NewSimpleTransaction(from, to string, amount int64, bc *BlockChain, txs []*
 func (tx *Transaction) IsCoinBaseTransaction() bool {
 
 	return len(tx.Vins[0].TxID) == 0 && tx.Vins[0].Vout == -1
+}
+
+//签名
+/*
+签名：为了对一笔交易进行签名
+	私钥：
+	要获取交易的Input，引用的output，所在的之前的交易：
+ */
+func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey, prevTxsmap map[string]*Transaction) {
+	//1.判断当前tx是否时coinbase交易
+	if tx.IsCoinBaseTransaction() {
+		return
+	}
+
+	//2.获取input对应的output所在的tx，如果不存在，无法进行签名
+	for _, input := range tx.Vins {
+		if prevTxsmap[hex.EncodeToString(input.TxID)] == nil {
+			log.Panic("当前的Input，没有找到对应的output所在的Transaction，无法签名。。")
+		}
+	}
+
+	//即将进行签名:私钥，要签名的数据
+	txCopy := tx.TrimmedCopy()
+
+	for index, input := range txCopy.Vins {
+		// input--->5566
+
+		prevTx := prevTxsmap[hex.EncodeToString(input.TxID)]
+
+		txCopy.Vins[index].Signature = nil                                 //仅仅是一个双重保险，保证签名一定为空
+		txCopy.Vins[index].PublicKey = prevTx.Vouts[input.Vout].PubKeyHash //设置input中的publickey为对应的output的公钥哈希
+
+		//txCopy.TxID = txCopy.NewTxID() //序列化
+
+		//为了方便下一个input，将数据再置为空
+		txCopy.Vins[index].PublicKey = nil
+
+		//获取要交易的数据
+
+		/*
+		第一个参数
+		第二个参数：私钥
+		第三个参数：要签名的数据
+
+
+		func Sign(rand io.Reader, priv *PrivateKey, hash []byte) (r, s *big.Int, err error)
+		r + s--->sign
+		input.Signatrue = sign
+	 */
+		//r,s,err:=ecdsa.Sign(rand.Reader, &privateKey, txCopy.TxID )
+		r, s, err := ecdsa.Sign(rand.Reader, &privateKey, txCopy.NewTxID())
+		if err != nil {
+			log.Panic(err)
+		}
+
+		sign := append(r.Bytes(), s.Bytes()...)
+		tx.Vins[index].Signature = sign
+	}
+
+}
+
+//获取要签名tx的副本
+/*
+要签名tx中，并不是所有的数据都要作为签名数据，生成签名
+txCopy = tx{签名所需要的部分数据}
+TxID
+
+Inputs
+	txid,vout,sign,publickey
+
+Outputs
+	value,pubkeyhash
+
+
+交易的副本中包含的数据
+	包含了原来tx中的输入和输出。
+		输入中：sign，publickey
+ */
+
+func (tx *Transaction) TrimmedCopy() *Transaction {
+	var inputs [] *TxInput
+	var outputs [] *TxOutput
+	for _, in := range tx.Vins {
+		inputs = append(inputs, &TxInput{in.TxID, in.Vout, nil, nil})
+	}
+
+	for _, out := range tx.Vouts {
+		outputs = append(outputs, &TxOutput{out.Value, out.PubKeyHash})
+	}
+
+	txCopy := &Transaction{tx.TxID, inputs, outputs}
+	return txCopy
+
+}
+
+func (tx *Transaction) Serialize() [] byte {
+	var buf bytes.Buffer
+	encoder := gob.NewEncoder(&buf)
+	err := encoder.Encode(tx)
+	if err != nil {
+		log.Panic(err)
+	}
+	return buf.Bytes()
+}
+
+func (tx *Transaction) NewTxID() []byte {
+	txCopy := tx
+	txCopy.TxID = []byte{}
+	hash := sha256.Sum256(txCopy.Serialize())
+	return hash[:]
 }

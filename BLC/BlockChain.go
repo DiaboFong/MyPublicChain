@@ -9,6 +9,8 @@ import (
 	"time"
 	"strconv"
 	"encoding/hex"
+	"crypto/ecdsa"
+	"bytes"
 )
 
 //定义一个区块链
@@ -359,7 +361,7 @@ func caculate(tx *Transaction, address string, spentTxOutputMap map[string][]int
 		for _, txInput := range tx.Vins {
 			//txInput-->TxInput
 			full_payload := Base58Decode([]byte(address))
-			pubKeyHash := full_payload[1:len(full_payload)-addressCheckSumLen]
+			pubKeyHash := full_payload[1 : len(full_payload)-addressCheckSumLen]
 			if txInput.UnlockWithAddress(pubKeyHash) {
 				//txInput的解锁脚本(用户名) 如果和钥查询的余额的用户名相同，
 				key := hex.EncodeToString(txInput.TxID)
@@ -441,4 +443,50 @@ func (bc *BlockChain) FindSpentableUTXOs(from string, amount int64, txs []*Trans
 
 	return total, spentableMap
 
+}
+
+//签名
+func (bc *BlockChain) SignTransaction(tx *Transaction, privateKey ecdsa.PrivateKey) {
+	//1.判断要签名的tx,如果是CoinBase交易，则直接返回
+
+	if tx.IsCoinBaseTransaction() {
+		return
+	}
+	//2.获取该tx中的Input,引用之前的transaction中未花费的output
+	prevTxs := make(map[string]*Transaction)
+
+	for _, input := range tx.Vins {
+		txIDStr := hex.EncodeToString(input.TxID)
+		prevTxs[txIDStr] = bc.FindTransactionByTxID(input.TxID)
+	}
+	//3.签名
+	tx.Sign(privateKey, prevTxs)
+
+}
+
+//根据交易ID，获取对应的交易对象
+func (bc *BlockChain) FindTransactionByTxID(txID []byte) *Transaction {
+	//遍历数据库，获取Block -- >transaction
+	iterator := bc.Iterator()
+
+	for {
+		block := iterator.Next()
+		for _, tx := range block.Txs {
+			if bytes.Compare(tx.TxID, txID) == 0 {
+				return tx
+			}
+		}
+		return &Transaction{}
+
+		//判断结束循环
+		bigInt := new(big.Int)
+		bigInt.SetBytes(block.PrevBlockHash)
+		if big.NewInt(0).Cmp(bigInt) == 0 {
+			break
+
+		}
+
+	}
+
+	return &Transaction{}
 }
