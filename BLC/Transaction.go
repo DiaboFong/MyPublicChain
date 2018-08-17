@@ -8,6 +8,8 @@ import (
 	"encoding/hex"
 	"crypto/ecdsa"
 	"crypto/rand"
+	"crypto/elliptic"
+	"math/big"
 )
 
 //定义交易的数据
@@ -101,7 +103,7 @@ func NewSimpleTransaction(from, to string, amount int64, bc *BlockChain, txs []*
 	tx.SetID()
 
 	//设置签名
-	bc.SignTransaction(tx, wallet.PrivateKey)
+	bc.SignTrasanction(tx, wallet.PrivateKey)
 
 	return tx
 
@@ -143,7 +145,7 @@ func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey, prevTxsmap map[string]*
 		txCopy.Vins[index].Signature = nil                                 //仅仅是一个双重保险，保证签名一定为空
 		txCopy.Vins[index].PublicKey = prevTx.Vouts[input.Vout].PubKeyHash //设置input中的publickey为对应的output的公钥哈希
 
-		//txCopy.TxID = txCopy.NewTxID() //序列化
+		txCopy.TxID = txCopy.NewTxID() //产生要签名的数据：
 
 		//为了方便下一个input，将数据再置为空
 		txCopy.Vins[index].PublicKey = nil
@@ -160,8 +162,7 @@ func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey, prevTxsmap map[string]*
 		r + s--->sign
 		input.Signatrue = sign
 	 */
-		//r,s,err:=ecdsa.Sign(rand.Reader, &privateKey, txCopy.TxID )
-		r, s, err := ecdsa.Sign(rand.Reader, &privateKey, txCopy.NewTxID())
+		r, s, err := ecdsa.Sign(rand.Reader, &privateKey, txCopy.TxID)
 		if err != nil {
 			log.Panic(err)
 		}
@@ -221,4 +222,80 @@ func (tx *Transaction) NewTxID() []byte {
 	txCopy.TxID = []byte{}
 	hash := sha256.Sum256(txCopy.Serialize())
 	return hash[:]
+}
+
+//验证交易
+/*
+验证的原理：
+公钥 + 要签名的数据 验证 签名：rs
+ */
+func (tx *Transaction) Verifity(prevTxs map[string]*Transaction) bool {
+	//1.如果时coinbase交易，不需要验证
+	if tx.IsCoinBaseTransaction() {
+		return true
+	}
+
+	//prevTxs
+	for _, input := range prevTxs {
+		if prevTxs[hex.EncodeToString(input.TxID)] == nil {
+			log.Panic("当前的input没有找到对应的Transaction，无法验证。。")
+		}
+	}
+
+	//验证
+	txCopy := tx.TrimmedCopy()
+
+	curev := elliptic.P256() //曲线
+
+	for index, input := range tx.Vins {
+		//原理：再次获取 要签名的数据  + 公钥哈希 + 签名
+		/*
+		验证签名的有效性：
+		第一个参数：公钥
+		第二个参数：签名的数据
+		第三、四个参数：签名：r，s
+		func Verify(pub *PublicKey, hash []byte, r, s *big.Int) bool
+		 */
+		//ecdsa.Verify()
+
+		//获取要签名的数据
+		prevTx := prevTxs[hex.EncodeToString(input.TxID)]
+
+		txCopy.Vins[index].Signature = nil
+		txCopy.Vins[index].PublicKey = prevTx.Vouts[input.Vout].PubKeyHash
+		txCopy.TxID = txCopy.NewTxID() //要签名的数据
+
+		txCopy.Vins[index].PublicKey = nil
+
+		//获取公钥
+		/*
+		type PublicKey struct {
+			elliptic.Curve
+			X, Y *big.Int
+		}
+		 */
+
+		x := big.Int{}
+		y := big.Int{}
+		keyLen := len(input.PublicKey)
+		x.SetBytes(input.PublicKey[:keyLen/2])
+		y.SetBytes(input.PublicKey[keyLen/2:])
+
+		rawPublicKey := ecdsa.PublicKey{curev, &x, &y}
+
+		//获取签名：
+
+		r := big.Int{}
+		s := big.Int{}
+
+		signLen := len(input.Signature)
+		r.SetBytes(input.Signature[:signLen/2])
+		s.SetBytes(input.Signature[signLen/2:])
+
+		if ecdsa.Verify(&rawPublicKey, txCopy.TxID, &r, &s) == false {
+			return false
+		}
+
+	}
+	return true
 }
