@@ -10,6 +10,7 @@ import (
 	"crypto/rand"
 	"crypto/elliptic"
 	"math/big"
+	"time"
 )
 
 //定义交易的数据
@@ -48,7 +49,12 @@ func (tx *Transaction) SetID() {
 		log.Panic(err)
 	}
 	//2.[]byte-->hash
-	hash := sha256.Sum256(buf.Bytes())
+
+	txBytes:=buf.Bytes()
+
+	allBytes:=bytes.Join([][]byte{txBytes,IntToHex(time.Now().Unix())},[]byte{})
+
+	hash := sha256.Sum256(allBytes)
 	//3.为tx设置ID
 	tx.TxID = hash[:]
 }
@@ -74,7 +80,7 @@ func NewSimpleTransaction(from, to string, amount int64, bc *BlockChain, txs []*
 	for txID, indexArray := range spentableUTXO {
 		txIDBytes, _ := hex.DecodeString(txID)
 		for _, index := range indexArray {
-			txInput := &TxInput{txIDBytes, index, nil, wallet.PublicKey}
+			txInput := &TxInput{txIDBytes, index, nil, wallet.PublickKey}
 			txInputs = append(txInputs, txInput)
 		}
 	}
@@ -102,8 +108,10 @@ func NewSimpleTransaction(from, to string, amount int64, bc *BlockChain, txs []*
 	//设置交易的ID
 	tx.SetID()
 
+
 	//设置签名
-	bc.SignTrasanction(tx, wallet.PrivateKey)
+	bc.SignTrasanction(tx,wallet.PrivateKey,txs)
+
 
 	return tx
 
@@ -145,10 +153,12 @@ func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey, prevTxsmap map[string]*
 		txCopy.Vins[index].Signature = nil                                 //仅仅是一个双重保险，保证签名一定为空
 		txCopy.Vins[index].PublicKey = prevTx.Vouts[input.Vout].PubKeyHash //设置input中的publickey为对应的output的公钥哈希
 
-		txCopy.TxID = txCopy.NewTxID() //产生要签名的数据：
+
+		txCopy.TxID = txCopy.NewTxID()//产生要签名的数据：
 
 		//为了方便下一个input，将数据再置为空
 		txCopy.Vins[index].PublicKey = nil
+
 
 		//获取要交易的数据
 
@@ -162,12 +172,12 @@ func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey, prevTxsmap map[string]*
 		r + s--->sign
 		input.Signatrue = sign
 	 */
-		r, s, err := ecdsa.Sign(rand.Reader, &privateKey, txCopy.TxID)
-		if err != nil {
+		r,s,err:=ecdsa.Sign(rand.Reader, &privateKey, txCopy.TxID )
+		if err != nil{
 			log.Panic(err)
 		}
 
-		sign := append(r.Bytes(), s.Bytes()...)
+		sign:=append(r.Bytes(),s.Bytes()...)
 		tx.Vins[index].Signature = sign
 	}
 
@@ -224,30 +234,32 @@ func (tx *Transaction) NewTxID() []byte {
 	return hash[:]
 }
 
+
+
 //验证交易
 /*
 验证的原理：
 公钥 + 要签名的数据 验证 签名：rs
  */
-func (tx *Transaction) Verifity(prevTxs map[string]*Transaction) bool {
+func (tx *Transaction) Verifity(prevTxs map[string]*Transaction)bool{
 	//1.如果时coinbase交易，不需要验证
-	if tx.IsCoinBaseTransaction() {
+	if tx.IsCoinBaseTransaction(){
 		return true
 	}
 
 	//prevTxs
-	for _, input := range prevTxs {
-		if prevTxs[hex.EncodeToString(input.TxID)] == nil {
+	for _,input:=range prevTxs{
+		if prevTxs[hex.EncodeToString(input.TxID)] == nil{
 			log.Panic("当前的input没有找到对应的Transaction，无法验证。。")
 		}
 	}
 
 	//验证
-	txCopy := tx.TrimmedCopy()
+	txCopy:= tx.TrimmedCopy()
 
-	curev := elliptic.P256() //曲线
+	curev:= elliptic.P256() //曲线
 
-	for index, input := range tx.Vins {
+	for index,input:=range tx.Vins{
 		//原理：再次获取 要签名的数据  + 公钥哈希 + 签名
 		/*
 		验证签名的有效性：
@@ -259,7 +271,7 @@ func (tx *Transaction) Verifity(prevTxs map[string]*Transaction) bool {
 		//ecdsa.Verify()
 
 		//获取要签名的数据
-		prevTx := prevTxs[hex.EncodeToString(input.TxID)]
+		prevTx:=prevTxs[hex.EncodeToString(input.TxID)]
 
 		txCopy.Vins[index].Signature = nil
 		txCopy.Vins[index].PublicKey = prevTx.Vouts[input.Vout].PubKeyHash
@@ -275,24 +287,27 @@ func (tx *Transaction) Verifity(prevTxs map[string]*Transaction) bool {
 		}
 		 */
 
-		x := big.Int{}
-		y := big.Int{}
-		keyLen := len(input.PublicKey)
+		x:=big.Int{}
+		y:=big.Int{}
+		keyLen:=len(input.PublicKey)
 		x.SetBytes(input.PublicKey[:keyLen/2])
 		y.SetBytes(input.PublicKey[keyLen/2:])
 
-		rawPublicKey := ecdsa.PublicKey{curev, &x, &y}
+
+
+		rawPublicKey:=ecdsa.PublicKey{curev,&x,&y}
+
 
 		//获取签名：
 
-		r := big.Int{}
-		s := big.Int{}
+		r :=big.Int{}
+		s :=big.Int{}
 
-		signLen := len(input.Signature)
+		signLen:=len(input.Signature)
 		r.SetBytes(input.Signature[:signLen/2])
 		s.SetBytes(input.Signature[signLen/2:])
 
-		if ecdsa.Verify(&rawPublicKey, txCopy.TxID, &r, &s) == false {
+		if ecdsa.Verify(&rawPublicKey,txCopy.TxID,&r,&s) == false{
 			return false
 		}
 

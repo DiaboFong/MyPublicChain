@@ -51,6 +51,8 @@ func CreateBlockChainWithGenesisBlock(address string) {
 	if err != nil {
 		log.Panic(err)
 	}
+	defer db.Close()
+
 	err = db.Update(func(tx *bolt.Tx) error {
 		//创世区块序列化后，存入到数据库中
 		b, err := tx.CreateBucketIfNotExists([]byte(BlockBucketName))
@@ -254,11 +256,18 @@ func (bc *BlockChain) MineNewBlock(from, to, amount []string) {
 
 	//交易的验证：
 	for _, tx := range txs {
-		if bc.VerifityTransaction(tx) == false {
+		if bc.VerifityTransaction(tx, txs) == false {
 			log.Panic("数字签名验证失败。。。")
 		}
 
 	}
+
+	/*
+	奖励：reward：
+	创建一个CoinBase交易--->Tx
+	 */
+	coinBaseTransaction := NewCoinBaseTransaction(from[0])
+	txs = append(txs, coinBaseTransaction)
 
 	//2.新建区块
 	newBlock := new(Block)
@@ -332,6 +341,7 @@ func (bc *BlockChain) UnSpent(address string, txs [] *Transaction) []*UTXO { //�
 	//第一部分：先查询本次转账，已经产生了的Transanction
 	for i := len(txs) - 1; i >= 0; i-- {
 		unSpentUTXOs = caculate(txs[i], address, spentTxOutputMap, unSpentUTXOs)
+		//caculate(txs[i],address,spentTxOutputMap,unSpentUTXOs)
 	}
 
 	//第二部分：数据库里的Trasacntion
@@ -369,7 +379,7 @@ func caculate(tx *Transaction, address string, spentTxOutputMap map[string][]int
 			//txInput-->TxInput
 			full_payload := Base58Decode([]byte(address))
 
-			pubKeyHash := full_payload[1 : len(full_payload)-addressCheckSumLen]
+			pubKeyHash := full_payload[1:len(full_payload)-addressCheckSumLen]
 
 			if txInput.UnlockWithAddress(pubKeyHash) {
 				//txInput的解锁脚本(用户名) 如果和钥查询的余额的用户名相同，
@@ -455,7 +465,7 @@ func (bc *BlockChain) FindSpentableUTXOs(from string, amount int64, txs []*Trans
 }
 
 //签名：
-func (bc *BlockChain) SignTrasanction(tx *Transaction, privateKey ecdsa.PrivateKey) {
+func (bc *BlockChain) SignTrasanction(tx *Transaction, privateKey ecdsa.PrivateKey, txs []*Transaction) {
 	//1.判断要签名的tx，如果时coninbase交易直接返回
 	if tx.IsCoinBaseTransaction() {
 		return
@@ -465,7 +475,7 @@ func (bc *BlockChain) SignTrasanction(tx *Transaction, privateKey ecdsa.PrivateK
 	prevTxs := make(map[string]*Transaction)
 	for _, input := range tx.Vins {
 		txIDStr := hex.EncodeToString(input.TxID)
-		prevTxs[txIDStr] = bc.FindTransactionByTxID(input.TxID)
+		prevTxs[txIDStr] = bc.FindTransactionByTxID(input.TxID, txs)
 	}
 
 	//3.签名
@@ -474,8 +484,15 @@ func (bc *BlockChain) SignTrasanction(tx *Transaction, privateKey ecdsa.PrivateK
 }
 
 //根据交易ID，获取对应的交易对象
-func (bc *BlockChain) FindTransactionByTxID(txID []byte) *Transaction {
-	//遍历数据库，获取blcok--->transaction
+func (bc *BlockChain) FindTransactionByTxID(txID []byte, txs [] *Transaction) *Transaction {
+	//1.先查找未打包的txs
+	for _, tx := range txs {
+		if bytes.Compare(tx.TxID, txID) == 0 {
+			return tx
+		}
+	}
+
+	//2.遍历数据库，获取blcok--->transaction
 	iterator := bc.Iterator()
 	for {
 		block := iterator.Next()
@@ -497,14 +514,93 @@ func (bc *BlockChain) FindTransactionByTxID(txID []byte) *Transaction {
 }
 
 //验证交易的数字签名
-func (bc *BlockChain) VerifityTransaction(tx *Transaction) bool {
+func (bc *BlockChain) VerifityTransaction(tx *Transaction, txs []*Transaction) bool {
 	//要想验证数字签名：私钥+数据 (tx的副本+之前的交易)
 	prevTxs := make(map[string]*Transaction)
 	for _, input := range tx.Vins {
-		prevTx := bc.FindTransactionByTxID(input.TxID)
+		prevTx := bc.FindTransactionByTxID(input.TxID, txs)
 		prevTxs[hex.EncodeToString(input.TxID)] = prevTx
 	}
 
 	//验证
 	return tx.Verifity(prevTxs)
+}
+
+/*
+增加一个函数：
+查询所有的未花费utxo
+map[]
+	key:txID,
+	value:TxOutputs
+		utxo-->[]*utxo-->
+
+ */
+func (bc *BlockChain) FindUnspentUTXOMap() map[string]*TxOutputs {
+	//遍历迭代每个block，txs里的未花费的output
+	iterator := bc.Iterator()
+	//创建一个map，用于存储已经花费的input--->output
+	spentedMap := make(map[string][]*TxInput)
+
+	//创建一个map，存储未花费的utxo
+	unspentUTXOsMap := make(map[string]*TxOutputs)
+
+	for {
+		block := iterator.Next()
+
+		for i := len(block.Txs) - 1; i >= 0; i-- {
+			tx := block.Txs[i]
+			txOutputs := &TxOutputs{[]*UTXO{}}
+
+			//step1：遍历tx的Inputs，存入到spentedMap
+			if !tx.IsCoinBaseTransaction() {
+				//获取每个input，存入spentedmap
+				for _, input := range tx.Vins {
+					key := hex.EncodeToString(input.TxID)
+					spentedMap[key] = append(spentedMap[key], input)
+				}
+			}
+
+			txIDstr := hex.EncodeToString(tx.TxID)
+			//step2遍历该tx的output
+		outputLoop:
+			for index, output := range tx.Vouts {
+				inputs := spentedMap[txIDstr] //已经花费的input
+
+				if len(spentedMap) > 0 {
+					isSpent := false
+					for _, input := range inputs {
+						inputPubKeyHash := PubKeyHash(input.PublicKey)
+						if bytes.Compare(inputPubKeyHash, output.PubKeyHash) == 0 && index == input.Vout {
+							isSpent = true
+							continue outputLoop
+						}
+					}
+					if isSpent == false {
+						utxo := &UTXO{tx.TxID, index, output}
+						txOutputs.UTXOs = append(txOutputs.UTXOs, utxo)
+					}
+
+				} else {
+					//获取output-->utxo-->存入到txoutputs
+					utxo := &UTXO{tx.TxID, index, output}
+					txOutputs.UTXOs = append(txOutputs.UTXOs, utxo)
+				}
+			}
+
+			//将当前的这个tx中，未花费txOutputs，存入到未花费map中
+			if len(txOutputs.UTXOs) > 0 {
+				unspentUTXOsMap[txIDstr] = txOutputs
+			}
+
+		}
+
+		//结束for循环
+		bigInt := new(big.Int)
+		bigInt.SetBytes(block.PrevBlockHash)
+
+		if big.NewInt(0).Cmp(bigInt) == 0 {
+			break
+		}
+	}
+	return unspentUTXOsMap
 }
