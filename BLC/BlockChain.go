@@ -240,10 +240,13 @@ func (bc *BlockChain) MineNewBlock(from, to, amount []string) {
 	//1.新建交易
 	var txs [] *Transaction
 
+
+	utxoSet :=&UTXOSet{bc}
+
 	for i := 0; i < len(from); i++ {
 		//amount[0]-->int
 		amountInt, _ := strconv.ParseInt(amount[i], 10, 64)
-		tx := NewSimpleTransaction(from[i], to[i], amountInt, bc, txs)
+		tx := NewSimpleTransaction(from[i], to[i], amountInt, utxoSet, txs)
 		txs = append(txs, tx)
 
 	}

@@ -12,5 +12,9 @@ func (cli *CLI) Send(from, to, amount []string) {
 		os.Exit(1)
 	}
 	defer bc.DB.Close()
+
 	bc.MineNewBlock(from, to, amount)
+	//添加更新
+	utsoSet :=&UTXOSet{bc}
+	utsoSet.Update()
 }

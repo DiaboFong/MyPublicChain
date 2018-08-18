@@ -179,7 +179,7 @@ func printUsage() {
 	fmt.Println("\tsend -from From -to To -amount Amount -- 转账交易")
 	fmt.Println("\tprintchain -- 打印区块")
 	fmt.Println("\tgetbalance -address Data -- 查询余额")
-	fmt.Println("\ttest -- 测试方法")
+	fmt.Println("\ttest -- 重置")
 }
 
 //func (cli *CLI) AddBlockToBlockChain(txs []*Transaction) {

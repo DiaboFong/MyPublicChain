@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"encoding/gob"
 	"log"
-	"crypto/sha256"
 )
 
 type Block struct {
@@ -82,19 +81,28 @@ func DeserializeBlock(blockBytes [] byte) *Block{
 //提供一个方法，用于将block块中的txs转为[]byte数组
 
 func (block *Block) HashTransactions()[]byte{
+	/*
 	//1.创建一个二维数组，存储每笔交易的txid
 	var txshashes [][] byte
 	//2.遍历
 	for _,tx:=range block.Txs{
-		/*
+
 		tx1,tx2,tx3...
 		[][]{tx1.ID,tx2.ID,tx3.ID...}
 
 		合并-->[]--->sha256
-		 */
+
 		 txshashes  = append(txshashes,tx.TxID)
 	}
 	//3.生成hash
 	txhash:=sha256.Sum256(bytes.Join(txshashes,[]byte{}))
 	return txhash[:]
+	*/
+	var txs [][]byte
+	for _,tx:=range block.Txs{
+		txs = append(txs,tx.Serialize())
+	}
+	mTree:=NewMerkleTree(txs)
+	return mTree.RootNode.DataHash
+
 }

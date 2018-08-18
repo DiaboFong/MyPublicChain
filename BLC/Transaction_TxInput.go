@@ -11,12 +11,15 @@ type TxInput struct {
 
 	//3.输入脚本，也就是解锁脚本。暂时理解为用户名
 	//ScriptSiq string
+
 	Signature []byte //数字签名
-	PublicKey []byte //原始公钥，钱包里的公钥
+	PublicKey[]byte //原始公钥，钱包里的公钥
+
 }
 
 //判断TxInput是否时指定的用户消费
-func (txInput *TxInput) UnlockWithAddress(pubKeyHash []byte) bool {
-	pubKeyHashNew := PubKeyHash(txInput.PublicKey)
-	return bytes.Compare(pubKeyHash, pubKeyHashNew) == 0
+func (txInput *TxInput) UnlockWithAddress(pubKeyHash []byte) bool{
+
+	pubKeyHash2:=PubKeyHash(txInput.PublicKey)
+	return bytes.Compare(pubKeyHash,pubKeyHash2) == 0
 }

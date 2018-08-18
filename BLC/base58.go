@@ -1,5 +1,4 @@
 package BLC
-
 import (
 	"math/big"
 	"bytes"
@@ -15,22 +14,22 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
 var b58Alphabet = []byte("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
 
 //字节数组转Base58，加密
-func Base58Encode(input []byte) []byte {
+func Base58Encode(input []byte)[]byte{
 	var result [] byte
 	x := big.NewInt(0).SetBytes(input)
 
-	base := big.NewInt(int64(len(b58Alphabet)))
-	zero := big.NewInt(0)
-	mod := &big.Int{}
-	for x.Cmp(zero) != 0 {
-		x.DivMod(x, base, mod)
-		result = append(result, b58Alphabet[mod.Int64()])
+	base :=big.NewInt(int64(len(b58Alphabet)))
+	zero:=big.NewInt(0)
+	mod:= &big.Int{}
+	for x.Cmp(zero) !=0{
+		x.DivMod(x,base,mod)
+		result = append(result,b58Alphabet[mod.Int64()])
 	}
 	ReverseBytes(result)
-	for b := range input {
-		if b == 0x00 {
-			result = append([]byte{b58Alphabet[0]}, result...)
-		} else {
+	for b:=range input{
+		if b == 0x00{
+			result = append([]byte{b58Alphabet[0]},result...)
+		}else {
 			break
 		}
 	}
@@ -40,11 +39,11 @@ func Base58Encode(input []byte) []byte {
 }
 
 //Base58转字节数组，解密
-func Base58Decode(input [] byte) []byte {
-	result := big.NewInt(0)
+func Base58Decode(input[] byte)[]byte{
+	result:=big.NewInt(0)
 	zeroBytes := 0
-	for b := range input {
-		if b == 0x00 {
+	for b:=range input{
+		if b == 0x00{
 			zeroBytes++
 		}
 	}
@@ -60,3 +59,5 @@ func Base58Decode(input [] byte) []byte {
 
 	return decoded
 }
+
+

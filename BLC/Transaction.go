@@ -60,7 +60,7 @@ func (tx *Transaction) SetID() {
 }
 
 //根据转账的信息，创建一个普通的交易
-func NewSimpleTransaction(from, to string, amount int64, bc *BlockChain, txs []*Transaction) *Transaction {
+func NewSimpleTransaction(from, to string, amount int64, utxoSet *UTXOSet, txs []*Transaction) *Transaction {
 	//1.定义Input和Output的数组
 	var txInputs []*TxInput
 	var txOuputs [] *TxOutput
@@ -71,7 +71,9 @@ func NewSimpleTransaction(from, to string, amount int64, bc *BlockChain, txs []*
 	 */
 
 	//获取本次转账要使用output
-	total, spentableUTXO := bc.FindSpentableUTXOs(from, amount, txs) //map[txID]-->[]int{index}
+	//total, spentableUTXO := bc.FindSpentableUTXOs(from, amount, txs) //map[txID]-->[]int{index}
+	total, spentableUTXO := utxoSet.FindSpentableUTXOs(from, amount, txs) //map[txID]-->[]int{index}
+
 
 	//获取钱包的集合：
 	wallets := NewWallets()
@@ -110,7 +112,7 @@ func NewSimpleTransaction(from, to string, amount int64, bc *BlockChain, txs []*
 
 
 	//设置签名
-	bc.SignTrasanction(tx,wallet.PrivateKey,txs)
+	utxoSet.BlockChian.SignTrasanction(tx,wallet.PrivateKey,txs)
 
 
 	return tx
@@ -270,7 +272,7 @@ func (tx *Transaction) Verifity(prevTxs map[string]*Transaction)bool{
 		 */
 		//ecdsa.Verify()
 
-		//获取要签名的数据
+	//获取要签名的数据
 		prevTx:=prevTxs[hex.EncodeToString(input.TxID)]
 
 		txCopy.Vins[index].Signature = nil
