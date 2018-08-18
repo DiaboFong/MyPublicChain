@@ -25,25 +25,19 @@ func newKeyPair() (ecdsa.PrivateKey, []byte) {
 	2.根据私钥，产生公钥
 	椭圆：ellipse，
 	曲线：curve，
-
 	椭圆曲线加密：(ECC：ellipse curve Cryptography)，非对称加密
-		加密：
-			对称加密和非对称机密啊
-
 		SECP256K1,算法
-
 		x轴(32byte)，y轴(32byte)--->
-
 	 */
 	//椭圆加密
 	curve := elliptic.P256() //根据椭圆加密算法，得到一个椭圆曲线值
-	//得到私钥
+	//生成私钥
 	privateKey, err := ecdsa.GenerateKey(curve, rand.Reader) //*Private
 	if err != nil {
 		log.Panic(err)
 	}
 
-	//产生公钥
+	//通过私钥生成公钥
 	publicKey := append(privateKey.PublicKey.X.Bytes(), privateKey.PublicKey.Y.Bytes()...)
 	return *privateKey, publicKey
 }
@@ -53,7 +47,6 @@ func NewWallet() *Wallet {
 	privateKey, publicKey := newKeyPair()
 	return &Wallet{privateKey, publicKey}
 }
-
 const version = byte(0x00)
 const addressCheckSumLen = 4
 
@@ -68,7 +61,6 @@ func (w *Wallet) GetAddress() []byte {
 
 	//step1：得到公钥哈希
 	pubKeyHash := PubKeyHash(w.PublickKey)
-
 	address := GetAddressByPubKeyHash(pubKeyHash)
 	return address
 
@@ -83,7 +75,7 @@ func GetAddressByPubKeyHash(pubKeyHash []byte) []byte {
 
 	//step4：拼接全部数据
 	full_payload := append(versioned_payload, checkSumBytes...)
-	//fmt.Println("full_payload:", full_payload, ",len:", len(full_payload))
+
 	//step5：Base58编码
 	address := Base58Encode(full_payload)
 	return address

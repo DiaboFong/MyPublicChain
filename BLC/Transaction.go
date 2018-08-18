@@ -76,7 +76,7 @@ func NewSimpleTransaction(from, to string, amount int64, utxoSet *UTXOSet, txs [
 
 
 	//获取钱包的集合：
-	wallets := NewWallets()
+	_,wallets := GetWallets()
 	wallet := wallets.WalletMap[from]
 
 	for txID, indexArray := range spentableUTXO {

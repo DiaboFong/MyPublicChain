@@ -13,31 +13,32 @@ type CLI struct {
 
 func (cli *CLI) Run() {
 
-	/*
-	Usage:
-		addblock -data DATA
-		printchain
+/*
+Usage:
+        createwallet
+                        -- 创建钱包
+        getaddresslists
+                        -- 获取所有的钱包地址
+        createblockchain -address address
+                        -- 创建创世区块
+        send -from SourceAddress -to DestAddress -amount Amount
+                        -- 转账交易
+        printchain
+                        -- 打印区块
+        getbalance -address address
+                        -- 查询余额
 
-
-	./bc printchain
-		-->执行打印的功能
-
-	 ./bc send -from '["wangergou"]' -to '["lixiaohua"]' -amount '["4"]'
-	./bc send -from '["wangergou","rose"]' -to '["lixiaohua","jace"]' -amount '["4","5"]'
-
-
-	 */
+*/
 	isValidArgs()
 
 	//1.创建flagset命令对象
 	createWalletCmd := flag.NewFlagSet("createwallet", flag.ExitOnError)
-	getAddresslistsCmd:=flag.NewFlagSet("getaddresslists",flag.ExitOnError)
+	getAddresslistsCmd := flag.NewFlagSet("getaddresslists", flag.ExitOnError)
 	CreateBlockChainCmd := flag.NewFlagSet("createblockchain", flag.ExitOnError)
 	sendCmd := flag.NewFlagSet("send", flag.ExitOnError)
 	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
 	getBalanceCmd := flag.NewFlagSet("getbalance", flag.ExitOnError)
-
-	testMethodCmd:=flag.NewFlagSet("test",flag.ExitOnError)
+	testMethodCmd := flag.NewFlagSet("test", flag.ExitOnError)
 
 	//2.设置命令后的参数对象
 	flagCreateBlockChainData := CreateBlockChainCmd.String("address", "GenesisBlock", "创世区块的信息")
@@ -50,13 +51,13 @@ func (cli *CLI) Run() {
 
 	//3.解析
 	switch os.Args[1] {
-	case "send":
-		err := sendCmd.Parse(os.Args[2:])
+	case "createwallet":
+		err := createWalletCmd.Parse(os.Args[2:])
 		if err != nil {
 			log.Panic(err)
 		}
-	case "printchain":
-		err := printChainCmd.Parse(os.Args[2:])
+	case "getaddresslists":
+		err := getAddresslistsCmd.Parse(os.Args[2:])
 		if err != nil {
 			log.Panic(err)
 		}
@@ -65,18 +66,18 @@ func (cli *CLI) Run() {
 		if err != nil {
 			log.Panic(err)
 		}
+	case "send":
+		err := sendCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
 	case "getbalance":
 		err := getBalanceCmd.Parse(os.Args[2:])
 		if err != nil {
 			log.Panic(err)
 		}
-	case "createwallet":
-		err := createWalletCmd.Parse(os.Args[2:])
-		if err != nil {
-			log.Panic(err)
-		}
-	case "getaddresslists":
-		err := getAddresslistsCmd.Parse(os.Args[2:])
+	case "printchain":
+		err := printChainCmd.Parse(os.Args[2:])
 		if err != nil {
 			log.Panic(err)
 		}
@@ -91,18 +92,31 @@ func (cli *CLI) Run() {
 
 	}
 	//4.根据终端输入的命令执行对应的功能
+	//4.1 创建钱包--->交易地址
+	if createWalletCmd.Parsed() {
+		cli.CreateWallet()
+	}
+	//4.2 获取钱包地址
+	if getAddresslistsCmd.Parsed() {
+		cli.GetAddressLists()
+	}
+	//4.3 创建创世区块
+	if CreateBlockChainCmd.Parsed() {
+		if !IsValidAddress([]byte(*flagCreateBlockChainData)) {
+			fmt.Println("地址无效，无法创建创世前区块。。")
+			printUsage()
+			os.Exit(1)
+		}
+		cli.CreateBlockChain(*flagCreateBlockChainData)
+	}
+	//4.4 转账交易
 	if sendCmd.Parsed() {
-		//fmt.Println("添加区块。。。",*flagAddBlockData)
 		if *flagSendFromData == "" || *flagSendToData == "" || *flagSendAmountData == "" {
 			fmt.Println("转账信息有误。。")
 			printUsage()
 			os.Exit(1)
 		}
 		//添加区块
-		//cli.AddBlockToBlockChain([]*Transaction{})
-		//from:=*flagSendFromData
-		//to:=*flagSendToData
-		//amount:=*flagSendAmountData
 		from := JSONToArray(*flagSendFromData)     //[]string
 		to := JSONToArray(*flagSendToData)         //[]string
 		amount := JSONToArray(*flagSendAmountData) //[]string
@@ -113,31 +127,11 @@ func (cli *CLI) Run() {
 				os.Exit(1)
 			}
 		}
-		//fmt.Println(from)
-		//fmt.Println(to)
-		//fmt.Println(amount)
+
 		cli.Send(from, to, amount)
 	}
-
-	if printChainCmd.Parsed() {
-		//fmt.Println("打印区块。。。")
-		//cli.BlockChain.PrintChains()
-		cli.PrintChains()
-	}
-
-	//添加创世区块的创建
-	if CreateBlockChainCmd.Parsed() {
-		//if *flagCreateBlockChainData == "" {
-		if !IsValidAddress([]byte(*flagCreateBlockChainData)) {
-			fmt.Println("地址无效，无法创建创世前区块。。")
-			printUsage()
-			os.Exit(1)
-		}
-		cli.CreateBlockChain(*flagCreateBlockChainData)
-	}
-
+	//4.5 查询余额
 	if getBalanceCmd.Parsed() {
-		//if *flagGetBalanceData == "" {
 		if !IsValidAddress([]byte(*flagGetBalanceData)) {
 			fmt.Println("查询地址有误。。")
 			printUsage()
@@ -146,17 +140,12 @@ func (cli *CLI) Run() {
 		cli.GetBalance(*flagGetBalanceData)
 	}
 
-	if createWalletCmd.Parsed() {
-		//创建钱包--->交易地址
-		cli.CreateWallet()
+	//4.6 打印区块信息
+	if printChainCmd.Parsed() {
+		cli.PrintChains()
 	}
 
-
-	if getAddresslistsCmd.Parsed(){
-		cli.GetAddressLists()
-	}
-
-	if testMethodCmd.Parsed(){
+	if testMethodCmd.Parsed() {
 		cli.TestMethod()
 	}
 
@@ -173,22 +162,12 @@ func isValidArgs() {
 //添加程序运行的说明
 func printUsage() {
 	fmt.Println("Usage:")
-	fmt.Println("\tcreatewallet -- 创建钱包")
-	fmt.Println("\tgetaddresslists -- 获取所有的钱包地址")
-	fmt.Println("\tcreateblockchain -address DATA -- 创建创世区块")
-	fmt.Println("\tsend -from From -to To -amount Amount -- 转账交易")
-	fmt.Println("\tprintchain -- 打印区块")
-	fmt.Println("\tgetbalance -address Data -- 查询余额")
-	fmt.Println("\ttest -- 重置")
-}
+	fmt.Println("\tcreatewallet\n\t\t\t-- 创建钱包")
+	fmt.Println("\tgetaddresslists\n\t\t\t-- 获取所有的钱包地址")
+	fmt.Println("\tcreateblockchain -address address\n\t\t\t-- 创建创世区块")
+	fmt.Println("\tsend -from SourceAddress -to DestAddress -amount Amount\n\t\t\t-- 转账交易")
+	fmt.Println("\tprintchain\n\t\t\t-- 打印区块")
+	fmt.Println("\tgetbalance -address address\n\t\t\t-- 查询余额")
 
-//func (cli *CLI) AddBlockToBlockChain(txs []*Transaction) {
-//	//cli.BlockChain.AddBlockToBlockChain(data)
-//	bc := GetBlockChainObject()
-//	if bc == nil {
-//		fmt.Println("没有BlockChain，无法添加新的区块。。")
-//		os.Exit(1)
-//	}
-//	defer bc.DB.Close()
-//	bc.AddBlockToBlockChain(txs)
-//}
+	//fmt.Println("\ttest -- 重置")
+}

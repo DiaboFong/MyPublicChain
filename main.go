@@ -1,8 +1,7 @@
 package main
 
-import (
-	"publicchain1803/day08_03_Merkle/BLC"
-)
+
+import "MyPublicChain/BLC"
 
 func main() {
 
@@ -103,6 +102,13 @@ func main() {
 	//blockchain:=BLC.CreateBlockChainWithGenesisBlock("Genesisblock..data...")
 	cli:=BLC.CLI{}
 	cli.Run()
+	//map1 :=make(map[string]int)
+	//map1["aa"] = 1
+	//map1["ab"] = 2
+	//map1["ac"] = 3
+	//fmt.Println(map1)
+	//delete(map1,"aa" )
+	//fmt.Println(map1)
 
 }
 /*
