@@ -37,16 +37,17 @@ func newKeyPair() (ecdsa.PrivateKey, []byte) {
 		log.Panic(err)
 	}
 
-	//通过私钥生成公钥
+	//通过私钥生成原始公钥
 	publicKey := append(privateKey.PublicKey.X.Bytes(), privateKey.PublicKey.Y.Bytes()...)
 	return *privateKey, publicKey
 }
 
 //step3：创建钱包对象
 func NewWallet() *Wallet {
-	privateKey, publicKey := newKeyPair()
-	return &Wallet{privateKey, publicKey}
+	privateKey, publickKey := newKeyPair()
+	return &Wallet{privateKey, publickKey}
 }
+
 const version = byte(0x00)
 const addressCheckSumLen = 4
 
@@ -64,21 +65,6 @@ func (w *Wallet) GetAddress() []byte {
 	address := GetAddressByPubKeyHash(pubKeyHash)
 	return address
 
-}
-
-func GetAddressByPubKeyHash(pubKeyHash []byte) []byte {
-	//step2：添加版本号：
-	versioned_payload := append([]byte{version}, pubKeyHash...)
-
-	//step3：根据versioned_payload-->两次sha256,取前4位，得到checkSum
-	checkSumBytes := CheckSum(versioned_payload)
-
-	//step4：拼接全部数据
-	full_payload := append(versioned_payload, checkSumBytes...)
-
-	//step5：Base58编码
-	address := Base58Encode(full_payload)
-	return address
 }
 
 /*
@@ -102,25 +88,39 @@ func PubKeyHash(publickKey []byte) []byte {
 
 }
 
+
+
 //产生校验码
 /*
 两次sha256
  */
 func CheckSum(payload [] byte) []byte {
 	firstHash := sha256.Sum256(payload)
-	secondHash := sha256.Sum256(firstHash[:]) //[]byte
+	secondHash := sha256.Sum256(firstHash[:])
 	return secondHash[:addressCheckSumLen]
+}
+
+func GetAddressByPubKeyHash(pubKeyHash []byte) []byte {
+	//step2：添加版本号：
+	versioned_payload := append([]byte{version}, pubKeyHash...)
+
+	//step3：根据versioned_payload-->两次sha256,取前4位，得到checkSum
+	checkSumBytes := CheckSum(versioned_payload)
+
+	//step4：拼接全部数据
+	full_payload := append(versioned_payload, checkSumBytes...)
+
+	//step5：Base58编码
+	address := Base58Encode(full_payload)
+	return address
 }
 
 //校验地址是否有效：
 func IsValidAddress(address []byte) bool {
-	/*
 
-	 */
 	//step1：Base58解码
 	//version+pubkeyHash+checksum
-	full_payload := Base58Decode(address) //25
-	//21:
+	full_payload := Base58Decode(address)
 
 	//step2：获取地址中携带的checkSUm
 	checkSumBytes := full_payload[len(full_payload)-addressCheckSumLen:]

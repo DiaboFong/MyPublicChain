@@ -16,6 +16,7 @@ type ProofOfWork struct {
 	Target *big.Int //目标hash
 }
 
+//新建POW对象
 func NewProofOfWork(block *Block) *ProofOfWork {
 	//1.创建pow对象
 	pow := &ProofOfWork{}
@@ -24,25 +25,26 @@ func NewProofOfWork(block *Block) *ProofOfWork {
 	target := big.NewInt(1)           // 目标hash，初始值为1
 	target.Lsh(target, 256-TargetBit) //左移256-16
 	pow.Target = target
-	/*
-	hash：256bit
-	16进制：32个
-	4个0--->16个0
-	0000 0000 0000 0000 1000 0000 0000 0000    256
-	 */
-
-	/*
-	0000 0001
-	0010 0000
-
-	8-2
-	256-16
-	 */
-	 return pow
+	return pow
 
 }
 
-//设计一个函数，得到有效hash，nonce
+//根据nonce，获取pow中要验证的block拼接成的数组的数据
+func (pow *ProofOfWork) prepareData(nonce int64) []byte {
+	//1.根据nonce，生成pow中要验证的block的数组
+	data := bytes.Join([][]byte{
+		IntToHex(pow.Block.Height),
+		pow.Block.PrevBlockHash,
+		IntToHex(pow.Block.TimeStamp),
+		pow.Block.HashTransactions(),
+		IntToHex(nonce),
+		IntToHex(TargetBit),
+	}, []byte{})
+	return data
+
+}
+
+//挖矿方法，得到有效hash，nonce
 func (pow *ProofOfWork) Run() ([]byte, int64) {
 	//挖矿--->更改nonce的值，计算hash，直到小于目标hash。
 	/*
@@ -58,7 +60,7 @@ func (pow *ProofOfWork) Run() ([]byte, int64) {
 		data := pow.prepareData(nonce)
 		//2.生成hash
 		hash = sha256.Sum256(data) //[32]byte
-		fmt.Printf("\r%d,%x",nonce,hash)
+		fmt.Printf("\r%d,%x", nonce, hash)
 		//3.验证：和目标hash比较
 		/*
 		func (x *Int) Cmp(y *Int) (r int)
@@ -88,27 +90,9 @@ func (pow *ProofOfWork) Run() ([]byte, int64) {
 
 }
 
-//根据nonce，获取pow中要验证的block拼接成的数组的数据
-func (pow *ProofOfWork) prepareData(nonce int64) []byte {
-	//1.根据nonce，生成pow中要验证的block的数组
-	data := bytes.Join([][]byte{
-		IntToHex(pow.Block.Height),
-		pow.Block.PrevBlockHash,
-		IntToHex(pow.Block.TimeStamp),
-		pow.Block.HashTransactions(),
-		IntToHex(nonce),
-		IntToHex(TargetBit),
-	}, []byte{})
-	return data
-
-}
-
-
-
-
-//提供一个方法：
-func (pow *ProofOfWork) IsValid()bool{
-	hashInt :=new(big.Int)
+//提供一个方法：用于验证区块有效性
+func (pow *ProofOfWork) IsValid() bool {
+	hashInt := new(big.Int)
 	hashInt.SetBytes(pow.Block.Hash)
 	return pow.Target.Cmp(hashInt) == 1
 }

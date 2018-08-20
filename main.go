@@ -1,8 +1,6 @@
 package main
 
-
 import "MyPublicChain/BLC"
-
 func main() {
 
 	//bytes:=make([]byte,3,3)
@@ -103,12 +101,7 @@ func main() {
 	cli:=BLC.CLI{}
 	cli.Run()
 	//map1 :=make(map[string]int)
-	//map1["aa"] = 1
-	//map1["ab"] = 2
-	//map1["ac"] = 3
-	//fmt.Println(map1)
-	//delete(map1,"aa" )
-	//fmt.Println(map1)
+
 
 }
 /*

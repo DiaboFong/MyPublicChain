@@ -32,21 +32,22 @@ func CreateBlockChainWithGenesisBlock(address string) {
 	2.数据库不存在，创建创世区块，并存入到数据库中
 	 */
 	if dbExists() {
-		fmt.Println("数据库已经存在，无法创建创世区块。。")
+		fmt.Println("数据库已经存在，无法创建创世区块")
 		return
 	}
 
 	//数据库不存在
-	fmt.Println("数据库不存在。。")
-	fmt.Println("正在创建创世区块。。。。。")
+	fmt.Println("数据库不存在")
+	fmt.Println("正在创建创世区块")
 	/*
 	1.创建创世区块
 	2.存入到数据库中
 	 */
 	//创建一个txs--->CoinBase
 	txCoinBase := NewCoinBaseTransaction(address)
-
+	//生成创世区块
 	genesisBlock := CreateGenesisBlock([]*Transaction{txCoinBase})
+
 	db, err := bolt.Open(DBName, 0600, nil)
 	if err != nil {
 		log.Panic(err)
@@ -240,8 +241,7 @@ func (bc *BlockChain) MineNewBlock(from, to, amount []string) {
 	//1.新建交易
 	var txs [] *Transaction
 
-
-	utxoSet :=&UTXOSet{bc}
+	utxoSet := &UTXOSet{bc}
 
 	for i := 0; i < len(from); i++ {
 		//amount[0]-->int
@@ -382,7 +382,7 @@ func caculate(tx *Transaction, address string, spentTxOutputMap map[string][]int
 			//txInput-->TxInput
 			full_payload := Base58Decode([]byte(address))
 
-			pubKeyHash := full_payload[1:len(full_payload)-addressCheckSumLen]
+			pubKeyHash := full_payload[1 : len(full_payload)-addressCheckSumLen]
 
 			if txInput.UnlockWithAddress(pubKeyHash) {
 				//txInput的解锁脚本(用户名) 如果和钥查询的余额的用户名相同，

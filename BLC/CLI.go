@@ -8,7 +8,7 @@ import (
 )
 
 type CLI struct {
-	//BlockChain *BlockChain
+
 }
 
 func (cli *CLI) Run() {
@@ -42,14 +42,12 @@ Usage:
 
 	//2.设置命令后的参数对象
 	flagCreateBlockChainData := CreateBlockChainCmd.String("address", "GenesisBlock", "创世区块的信息")
-
 	flagSendFromData := sendCmd.String("from", "", "转账源地址")
 	flagSendToData := sendCmd.String("to", "", "转账目标地址")
 	flagSendAmountData := sendCmd.String("amount", "", "转账金额")
-
 	flagGetBalanceData := getBalanceCmd.String("address", "", "要查询余额的账户")
 
-	//3.解析
+	//3.解析命令对象
 	switch os.Args[1] {
 	case "createwallet":
 		err := createWalletCmd.Parse(os.Args[2:])
@@ -103,7 +101,7 @@ Usage:
 	//4.3 创建创世区块
 	if CreateBlockChainCmd.Parsed() {
 		if !IsValidAddress([]byte(*flagCreateBlockChainData)) {
-			fmt.Println("地址无效，无法创建创世前区块。。")
+			fmt.Println("地址无效，无法创建创世前区块")
 			printUsage()
 			os.Exit(1)
 		}
@@ -112,7 +110,7 @@ Usage:
 	//4.4 转账交易
 	if sendCmd.Parsed() {
 		if *flagSendFromData == "" || *flagSendToData == "" || *flagSendAmountData == "" {
-			fmt.Println("转账信息有误。。")
+			fmt.Println("转账信息有误")
 			printUsage()
 			os.Exit(1)
 		}
@@ -122,7 +120,7 @@ Usage:
 		amount := JSONToArray(*flagSendAmountData) //[]string
 		for i := 0; i < len(from); i++ {
 			if !IsValidAddress([]byte(from[i])) || !IsValidAddress([]byte(to[i])) {
-				fmt.Println("地址无效，无法转账。。")
+				fmt.Println("地址无效，无法转账")
 				printUsage()
 				os.Exit(1)
 			}
@@ -133,7 +131,7 @@ Usage:
 	//4.5 查询余额
 	if getBalanceCmd.Parsed() {
 		if !IsValidAddress([]byte(*flagGetBalanceData)) {
-			fmt.Println("查询地址有误。。")
+			fmt.Println("查询地址有误")
 			printUsage()
 			os.Exit(1)
 		}

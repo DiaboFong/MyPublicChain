@@ -20,7 +20,17 @@ type Wallets struct {
 //创建钱包集合
 func (ws *Wallets) CreateNewWallets() {
 	wallet := NewWallet()
-	address := wallet.GetAddress()
+	var address []byte
+	address = wallet.GetAddress()
+	//创建想要的比特币地址
+	//for {
+	//	address = wallet.GetAddress()
+	//	fmt.Printf("\r%s", address)
+	//
+	//	if strings.Contains(string(address), "bru") {
+	//		break
+	//	}
+	//}
 	fmt.Printf("创建的钱包地址：%s\n", address)
 	ws.WalletMap[string(address)] = wallet
 	//将钱包集合存入到本地文件中
@@ -55,15 +65,14 @@ func (ws *Wallets) SaveFile() {
 	读取本地的钱包文件，如果文件存在，直接获取
 	如果文件不存在，创建一个空的钱包对象
  */
-func GetWallets() (bool, *Wallets) {
-
+func GetWallets()  *Wallets {
 	//step1：钱包文件不存在
 	if _, err := os.Stat(walletsFile); os.IsNotExist(err) {
 		fmt.Println("区块链钱包不存在")
 		//创建钱包集合
 		wallets := &Wallets{}
 		wallets.WalletMap = make(map[string]*Wallet)
-		return false, wallets
+		return wallets
 	}
 
 	//step2:钱包文件存在
@@ -83,6 +92,6 @@ func GetWallets() (bool, *Wallets) {
 	if err != nil {
 		log.Panic(err)
 	}
-	return true, &wallets
+	return  &wallets
 
 }
