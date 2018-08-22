@@ -1,4 +1,4 @@
-# 从0到1简易区块链开发手册
+# 从0到1简易区块链开发手册V0.4
 
 **Author: brucefeng**
 
@@ -508,17 +508,17 @@ https://www.cnblogs.com/fangbei/p/imToken-clearance.html
 
 ![2.0.创建钱包All](/Users/brucefeng/Desktop/公众号文章/公链开发/从0到1简易区块链开发手册/脑图截图/2.0.创建钱包All.png)
 
-							图 创建钱包与钱包集合
+图 创建钱包与钱包集合
 
 
 
 ![2.1.创建钱包Wallet](/Users/brucefeng/Desktop/公众号文章/公链开发/从0到1简易区块链开发手册/脑图截图/2.1.创建钱包Wallet.png)
 
-								图 创建钱包wallet
+图 创建钱包wallet
 
 ![2.2.创建钱包集合Wallets](/Users/brucefeng/Desktop/公众号文章/公链开发/从0到1简易区块链开发手册/脑图截图/2.2.创建钱包集合Wallets.png)
 
-								图 创建钱包集合
+图 创建钱包集合
 
 
 
@@ -543,7 +543,7 @@ type Wallet struct {
 
 
 
-							图 	从私钥到生成钱包地址的过程图		
+图 	从私钥到生成钱包地址的过程图		
 
 
 		
@@ -865,11 +865,11 @@ $ ./mybtc getaddresslists
 
 ![3.在线查看比特币地址余额](/Users/brucefeng/Desktop/公众号文章/公链开发/从0到1简易区块链开发手册/其他图片/3.在线查看比特币地址余额.png)
 
-								图  通过搜索框进行地址搜索
+							图  通过搜索框进行地址搜索
 
 ![4.在线查看比特币地址余额-1](/Users/brucefeng/Desktop/公众号文章/公链开发/从0到1简易区块链开发手册/其他图片/4.在线查看比特币地址余额-1.png)
 
-								图  钱包地址详情
+图  钱包地址详情
 
 > 如果修改钱包地址的某个字符，如将随后的V改为X
 
@@ -1115,7 +1115,9 @@ if err != nil {
 
 ### 2. 工作量证明
 
-在比特币世界中，获取区块记账权的过程称之为挖矿，一个矿工成功后，他会把之前打包好的网络上的交易记录到一页账本上，同步给其他人。因为这个矿工能够最先计算出超难数学题的正确答案，说明这个矿工付出了工作量，是一个有权利记账的人，因此其他人也会同意这一页账单。这种依靠工作量来证明记账权，大家来达成共识的机制叫做“工作量证明”，简而言之结果可以证明你付出了多少工作量。Proof Of Work简称“PoW”，关于其原理跟代码实现，我们在后面的代码分析中进行讲解说明。
+在比特币世界中，获取区块记账权的过程称之为挖矿，一个矿工成功后，他会把之前打包好的网络上的交易记录到一页账本上，同步给其他人。因为这个矿工能够最先计算出超难数学题的正确答案，说明这个矿工付出了工作量，是一个有权利记账的人，因此其他人也会同意这一页账单。这种依靠工作量来证明记账权，大家来达成共识的机制叫做“工作量证明”，简而言之结果可以证明你付出了多少工作量。
+
+![6.工作量证明](/Users/brucefeng/Desktop/公众号文章/公链开发/从0到1简易区块链开发手册/其他图片/6.工作量证明.jpeg)
 
 #### 2.1 定义结构体
 
@@ -1535,4 +1537,917 @@ $ ./mybtc  createblockchain -address 1DHPNHKfk9uUdog2f2xBvx9dq4NxpF5Q4Q
 $ ls
 BLC             Wallets.dat     blockchain.db   main.go         mybtc
 ```
+
+
+
+## 六.转账交易
+
+创世区块创建完毕之后，按照我们的正常思路，是继续创建新的区块，并加入至区块链中，没错，这确实是学习路线，但是我们首先来了解一个区块是如何生成的，转账交易 ===>打包交易  ===>工作量证明  ===>生成区块
+
+在上文，我们提到了钱包地址这个概念，我们一般可以简单将钱包地址理解为一个银行账户，那么交易也就可以理解为是地址与地址之间的转账过程。
+
+因为这部分内容非常重要，设置可以说交易就是比特币原理的核心，所以，为了保证大家对概念有充分的了解，本章节的理论描述部分此处摘录[liuchengxu](https://liuchengxu.gitbooks.io/blockchain-tutorial/content/part-4/transactions-1.html)中关于对交易的翻译。
+
+### 1.概念
+
+交易（transaction）是比特币的核心所在，而区块链唯一的目的，也正是为了能够安全可靠地存储交易。在区块链中，交易一旦被创建，就没有任何人能够再去修改或是删除它。今天，我们将会开始实现交易。不过，由于交易是很大的话题，我会把它分为两部分来讲：在今天这个部分，我们会实现交易的基本框架。在第二部分，我们会继续讨论它的一些细节。
+
+由于比特币采用的是 UTXO 模型，并非账户模型，并不直接存在“余额”这个概念，余额需要通过遍历整个交易历史得来。
+
+> 关于UTXO模型，这在比特币中也是非常重要的概念模型，务必数量掌握。
+
+点击[此处](https://www.blockchain.com/zh-cn/btc/tx/b6f6b339b546a13822192b06ccbdd817afea5311845f769702ae2912f7d94ab5)查看相关的交易信息
+
+![image-20180821104144181](/Users/brucefeng/Desktop/公众号文章/公链开发/从0到1简易区块链开发手册/其他图片/7.查看交易信息.png)
+
+图 交易记录
+
+![image-20180821110337138](/Users/brucefeng/Desktop/公众号文章/公链开发/从0到1简易区块链开发手册/其他图片/7.1.交易输入脚本.png)
+
+图 输入脚本
+
+![image-20180821110412726](/Users/brucefeng/Desktop/公众号文章/公链开发/从0到1简易区块链开发手册/其他图片/7.2.交易输出脚本.png)
+
+关于转账交易涉及到的内容非常多，由于时间原因，目前可能无法做到非常全面的讲解，姑且将自己梳理好能够解释清楚的地方分享出来，由于比特币世界中的交易规则会更加复杂化，所以，希望大家能够通过本章节的阅读，在一定程度上对某些概念有一些初步或者稍微深刻的理解，那么本章节的目的也就达到了，更深的分析笔者将会在后期的工作中根据实际的工作场景进行优化并做相关记录。
+
+### 2.结构体定义
+
+其实再转账交易这个功能里面，涉及了本文所有的结构体对象，由于区块与区块链对象等在上文已经有所提及，这里先列出跟转账交易关系最为密切的一些结构体。
+
+
+
+![image-20180822133236933](/Users/brucefeng/Desktop/公众号文章/公链开发/从0到1简易区块链开发手册/脑图截图/4.0.转账交易-结构体定义.png)
+
+#### 2.1 交易Transaction
+
+```go
+type Transaction struct {
+	//1.交易ID
+	TxID []byte
+	//2.输入
+	Vins []*TxInput
+	//3.输出
+	Vouts []*TxOutput
+}
+```
+
+* **TxID** : 交易ID，一般通过对交易进行哈希后得到
+* **Vins**:  交易输入数组
+* **Vouts**:交易输出数组
+
+#### 2.2 交易输入TxInput
+
+```
+type TxInput struct {
+	//1.交易ID：
+	TxID []byte
+	//2.下标
+	Vout int
+	//3.数字签名
+	Signature []byte 
+	//4.原始公钥，钱包里的公钥
+	PublicKey []byte 
+
+}
+```
+
+* **TxID**: 交易ID，表示该TxInput引用的TxOutput所在的交易ID
+* **Vout**:下标，表示该TxInput引用的TxOutput在交易中的位置
+* **Signature**：数字签名，用于对引用的TxOutput交易的解锁
+* **PublicKey**: 钱包的公钥，原始公钥
+
+#### 2.3 交易输出TxOutput
+
+```go
+type TxOutput struct {
+	//金额
+	Value int64  //金额
+	//锁定脚本，也叫输出脚本，公钥，目前先理解为用户名，钥花费这笔前，必须钥先解锁脚本
+	//ScriptPubKey string
+	PubKeyHash [] byte//公钥哈希
+}
+```
+
+* **Value** : 金额，转账/找零金额
+
+* **PubKeyHash**:输出脚本，此处为公钥哈希，用于锁定该笔交易输出
+
+
+
+#### 2.4 未花费交易输出UTXO
+
+```go
+type UTXO struct {
+	//1.该output所在的交易id
+	TxID []byte
+	//2.该output 的下标
+	Index int
+	//3.output
+	Output *TxOutput
+}
+```
+
+UTXO:Unspent Transaction output
+
+* **TxID**: 该TxOutput所在的交易id
+* **Index**:该TxOutput 的下标
+* **Output**:TxOutput对象
+
+
+
+#### 2.5 未花费交易输出集合 UTXOSet
+
+```go
+type UTXOSet struct {
+	BlockChian *BlockChain
+}
+```
+
+
+
+```go
+const utxosettable = "utxoset"
+```
+
+定义一个常量用于标识存入数据库中的Bucket表名
+
+
+
+### 3.转账交易流程
+
+单笔转账
+
+```
+$ ./mybtc send -from 源地址 -to 目标地址 -amount 转账金额
+```
+
+多笔转账
+
+```
+$ ./mybtc send \
+  -from '["源地址1","源地址2","源地址N"]' \
+  -to   '["目标地址1","目标地址2","目标地址3"]' \
+  -amount '["转账金额1","转账金额2","转账金额3"]'
+```
+
+这部分内容理解起来有些难度，所以我做了一张图，希望能够帮助大家能够理顺思路，这样在后面的学习以及代码理解上面会稍微容易一些。
+
+
+
+![2.转账交易.001](/Users/brucefeng/Desktop/公众号文章/公链开发/从0到1简易区块链开发手册/Keynote源文件/2.转账交易.jpeg)
+
+
+
+本图介绍了从创世区块后的三次转账过程，分别产生了三个区块，为了让读者有更直观的了解，我又将该图做成了动态图的方式供大家参考，通过该图，希望大家能够大致对转账交易有个印象。
+
+![2.转账交易](/Users/brucefeng/Desktop/公众号文章/公链开发/从0到1简易区块链开发手册/动态图/2.转账交易.gif)
+
+动态图演示了新区块中的输入交易引用的是哪个区块中的交易输出，从而实现了区块链每次转账的金额都有据可依，也从另外一个角度展示了比特币中UTXO的概念模型。
+
+### 4.代码分析
+
+由于代码量巨大，为了让整个过程的理解更加流程，我改变前面几篇文章的思路，从执行命令的代码块进行一步一步的代码分析，希望能将自己的思路理顺，从而可以更好得引导读者朋友。
+
+同样，因为很多概念性的东西，我不准备在文章里面啰嗦，如果感觉阅读难度比较大，建议先仔细阅读这篇文章
+
+https://github.com/liuchengxu/blockchain-tutorial
+
+然后再回头来看我的这篇文章，会事半功倍
+
+```go
+func (cli *CLI) Send(from, to, amount []string) {
+	bc := GetBlockChainObject()
+	if bc == nil {
+		fmt.Println("没有BlockChain，无法转账。。")
+		os.Exit(1)
+	}
+	defer bc.DB.Close()
+
+	bc.MineNewBlock(from, to, amount)
+	utsoSet :=&UTXOSet{bc}
+	utsoSet.Update()
+}
+
+```
+
+
+
+#### 4.1 获取blockchain对象
+
+```go
+func GetBlockChainObject() *BlockChain {
+	/*
+		1.数据库存在，读取数据库，返回blockchain即可
+		2.数据库 不存在，返回nil
+	 */
+
+	if dbExists() {
+		//fmt.Println("数据库已经存在。。。")
+		//打开数据库
+		db, err := bolt.Open(DBName, 0600, nil)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		var blockchain *BlockChain
+
+		err = db.View(func(tx *bolt.Tx) error {
+			//打开bucket，读取l对应的最新的hash
+			b := tx.Bucket([]byte(BlockBucketName))
+			if b != nil {
+				//读取最新hash
+				hash := b.Get([]byte("l"))
+				blockchain = &BlockChain{db, hash}
+			}
+			return nil
+		})
+		if err != nil {
+			log.Panic(err)
+		}
+		return blockchain
+	} else {
+		fmt.Println("数据库不存在，无法获取BlockChain对象。。。")
+		return nil
+	}
+}
+```
+
+> 判断存储区块的DB文件是否存在，如果存在，直接从数据库Bucket中读取"l"对应Hash值，将db对象与获取到hash值赋值给需要返回的区块链对象，如果DB文件不存在，说明创世区块并未创建，没有区块链对象，直接退出程序。
+
+
+
+#### 4.2 生成区块
+
+获取到区块链对象之后，我们调用MineNewBlock方法进行区块的创建
+
+![image-20180822192727438](/Users/brucefeng/Desktop/公众号文章/公链开发/从0到1简易区块链开发手册/脑图截图/5.0.转账交易-生成区块-1.png)
+
+```go
+func (bc *BlockChain) MineNewBlock(from, to, amount []string) {
+	/*
+	1.新建交易
+	2.新建区块：
+		读取数据库，获取最后一块block
+	3.存入到数据库中
+	 */
+
+	//1.新建交易集合
+	var txs [] *Transaction
+
+	utxoSet := &UTXOSet{bc}
+
+	for i := 0; i < len(from); i++ {
+		//amount[0]-->int
+		amountInt, _ := strconv.ParseInt(amount[i], 10, 64)
+		tx := NewSimpleTransaction(from[i], to[i], amountInt, utxoSet, txs)
+		txs = append(txs, tx)
+
+	}
+	/*
+	分析：循环第一次：i=0
+		txs[transaction1, ]
+		循环第二次：i=1
+		txs [transaction1, transaction2]
+	 */
+
+	//交易的验证：
+	for _, tx := range txs {
+		if bc.VerifityTransaction(tx, txs) == false {
+			log.Panic("数字签名验证失败。。。")
+		}
+
+	}
+
+	/*
+	奖励：reward：
+	创建一个CoinBase交易--->Tx
+	 */
+	coinBaseTransaction := NewCoinBaseTransaction(from[0])
+	txs = append(txs, coinBaseTransaction)
+
+	//2.新建区块
+	newBlock := new(Block)
+	err := bc.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(BlockBucketName))
+		if b != nil {
+			//读取数据库
+			blockBytes := b.Get(bc.Tip)
+			lastBlock := DeserializeBlock(blockBytes)
+
+			newBlock = NewBlock(txs, lastBlock.Hash, lastBlock.Height+1)
+
+		}
+		return nil
+	})
+	if err != nil {
+		log.Panic(err)
+	}
+
+	//3.存入到数据库中
+	err = bc.DB.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(BlockBucketName))
+		if b != nil {
+			//将新block存入到数据库中
+			b.Put(newBlock.Hash, newBlock.Serialize())
+			//更新l
+			b.Put([]byte("l"), newBlock.Hash)
+			//tip
+			bc.Tip = newBlock.Hash
+		}
+
+		return nil
+	})
+	if err != nil {
+		log.Panic(err)
+	}
+}
+```
+
+##### 4.2.1 新建交易
+
+在以上的代码中，涉及到几个比较重要的方法，其中一个NewSimpleTransaction用于创建交易并打包，这里对代码进行了简单梳理,由于内容实在太多，在**文章末尾**我会将github的源代码地址贴出，供大家查看。
+
+###### (1) 创建该交易的TxInput
+
+![image-20180822193658819](/Users/brucefeng/Desktop/公众号文章/公链开发/从0到1简易区块链开发手册/脑图截图/5.1.转账交易-创建交易的TxInput.png)
+
+
+
+###### (2) 创建该交易的TxOutput
+
+![image-20180822193902120](/Users/brucefeng/Desktop/公众号文章/公链开发/从0到1简易区块链开发手册/脑图截图/5.1.转账交易-创建交易的TxOutput.png)
+
+
+
+###### (3) 创建交易
+
+![image-20180822194002399](/Users/brucefeng/Desktop/公众号文章/公链开发/从0到1简易区块链开发手册/脑图截图/5.1.转账交易-创建交易.png)
+
+
+
+**NewSimpleTransaction**
+
+```go
+func NewSimpleTransaction(from, to string, amount int64, utxoSet *UTXOSet, txs []*Transaction) *Transaction {
+	//1.定义Input和Output的数组
+	var txInputs []*TxInput
+	var txOuputs [] *TxOutput
+
+	//2.创建Input
+	/*
+	创世区块中交易ID：c16d3ad93450cd532dcd7ef53d8f396e46b2e59aa853ad44c284314c7b9db1b4
+	 */
+
+	//获取本次转账要使用output
+	//total, spentableUTXO := bc.FindSpentableUTXOs(from, amount, txs) //map[txID]-->[]int{index}
+	total, spentableUTXO := utxoSet.FindSpentableUTXOs(from, amount, txs) //map[txID]-->[]int{index}
+
+
+	//获取钱包的集合：
+	wallets := GetWallets()
+	wallet := wallets.WalletMap[from]
+
+	for txID, indexArray := range spentableUTXO {
+		txIDBytes, _ := hex.DecodeString(txID)
+		for _, index := range indexArray {
+			txInput := &TxInput{txIDBytes, index, nil, wallet.PublickKey}
+			txInputs = append(txInputs, txInput)
+		}
+	}
+
+
+	//3.创建Output
+
+	//转账
+	txOutput := NewTxOutput(amount, to)
+	txOuputs = append(txOuputs, txOutput)
+
+	//找零
+	//txOutput2 := &TxOutput{total - amount, from}
+	txOutput2 := NewTxOutput(total-amount, from)
+	txOuputs = append(txOuputs, txOutput2)
+
+	//4.创建交易
+	tx := &Transaction{[]byte{}, txInputs, txOuputs}
+
+	//设置交易的ID
+	tx.SetID()
+
+
+	//设置签名
+	utxoSet.BlockChian.SignTransaction(tx,wallet.PrivateKey,txs)
+
+
+	return tx
+
+}
+```
+
+**FindSpentableUTXOs**
+
+```go
+func (utxoSet *UTXOSet) FindSpentableUTXOs(from string, amount int64, txs []*Transaction) (int64, map[string][]int) {
+	var total int64
+	//用于存储转账所使用utxo
+	spentableUTXOMap := make(map[string][]int)
+	//1.查询未打包可以使用的utxo：txs
+	unPackageSpentableUTXOs := utxoSet.FindUnpackeSpentableUTXO(from, txs)
+
+	for _, utxo := range unPackageSpentableUTXOs {
+		total += utxo.Output.Value
+		txIDStr := hex.EncodeToString(utxo.TxID)
+		spentableUTXOMap[txIDStr] = append(spentableUTXOMap[txIDStr], utxo.Index)
+		if total >= amount {
+			return total, spentableUTXOMap
+		}
+	}
+
+
+
+	//2.查询utxotable，查询utxo
+	//已经存储的但是未花费的utxo
+	err := utxoSet.BlockChian.DB.View(func(tx *bolt.Tx) error {
+		//查询utxotable中，未花费的utxo
+		b := tx.Bucket([]byte(utxosettable))
+		if b != nil {
+			//查询
+			c := b.Cursor()
+		dbLoop:
+			for k, v := c.First(); k != nil; k, v = c.Next() {
+				txOutputs := DeserializeTxOutputs(v)
+				for _, utxo := range txOutputs.UTXOs {
+					if utxo.Output.UnlockWithAddress(from) {
+						total += utxo.Output.Value
+						txIDStr := hex.EncodeToString(utxo.TxID)
+						spentableUTXOMap[txIDStr] = append(spentableUTXOMap[txIDStr], utxo.Index)
+						if total >= amount {
+							break dbLoop
+							//return nil
+						}
+					}
+				}
+
+			}
+
+		}
+
+		return nil
+
+	})
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return total, spentableUTXOMap
+}
+
+```
+
+**FindUnpackeSpentableUTXO**
+
+```go
+func (utxoSet *UTXOSet) FindUnpackeSpentableUTXO(from string, txs []*Transaction) []*UTXO {
+	//存储可以使用的未花费utxo
+	var unUTXOs []*UTXO
+
+	//存储已经花费的input
+	spentedMap := make(map[string][]int)
+
+	for i := len(txs) - 1; i >= 0; i-- {
+		//func caculate(tx *Transaction, address string, spentTxOutputMap map[string][]int, unSpentUTXOs []*UTXO) []*UTXO {
+		unUTXOs = caculate(txs[i], from, spentedMap, unUTXOs)
+	}
+
+	return unUTXOs
+}
+```
+
+**caculate**
+
+```go
+func caculate(tx *Transaction, address string, spentTxOutputMap map[string][]int, unSpentUTXOs []*UTXO) []*UTXO {
+   //遍历每个tx：txID，Vins，Vouts
+
+   //遍历所有的TxInput
+   if !tx.IsCoinBaseTransaction() { //tx不是CoinBase交易，遍历TxInput
+      for _, txInput := range tx.Vins {
+         //txInput-->TxInput
+         full_payload := Base58Decode([]byte(address))
+
+         pubKeyHash := full_payload[1 : len(full_payload)-addressCheckSumLen]
+
+         if txInput.UnlockWithAddress(pubKeyHash) {
+            //txInput的解锁脚本(用户名) 如果和要查询的余额的用户名相同，
+            key := hex.EncodeToString(txInput.TxID)
+            spentTxOutputMap[key] = append(spentTxOutputMap[key], txInput.Vout)
+            /*
+            map[key]-->value
+            map[key] -->[]int
+             */
+         }
+      }
+   }
+
+   //遍历所有的TxOutput
+outputs:
+   for index, txOutput := range tx.Vouts { //index= 0,txoutput.锁定脚本
+      if txOutput.UnlockWithAddress(address) {
+         if len(spentTxOutputMap) != 0 {
+            var isSpentOutput bool //false
+            //遍历map
+            for txID, indexArray := range spentTxOutputMap { //143d,[]int{1}
+               //遍历 记录已经花费的下标的数组
+               for _, i := range indexArray {
+                  if i == index && hex.EncodeToString(tx.TxID) == txID {
+                     isSpentOutput = true //标记当前的txOutput是已经花费
+                     continue outputs
+                  }
+               }
+            }
+
+            if !isSpentOutput {
+               //unSpentTxOutput = append(unSpentTxOutput, txOutput)
+               //根据未花费的output，创建utxo对象--->数组
+               utxo := &UTXO{tx.TxID, index, txOutput}
+               unSpentUTXOs = append(unSpentUTXOs, utxo)
+            }
+
+         } else {
+            //如果map长度为0,证明还没有花费记录，output无需判断
+            //unSpentTxOutput = append(unSpentTxOutput, txOutput)
+            utxo := &UTXO{tx.TxID, index, txOutput}
+            unSpentUTXOs = append(unSpentUTXOs, utxo)
+         }
+      }
+   }
+   return unSpentUTXOs
+
+}
+```
+
+
+
+###### (4) 设置签名
+
+![image-20180822194100407](/Users/brucefeng/Desktop/%E5%85%AC%E4%BC%97%E5%8F%B7%E6%96%87%E7%AB%A0/%E5%85%AC%E9%93%BE%E5%BC%80%E5%8F%91/%E4%BB%8E0%E5%88%B01%E7%AE%80%E6%98%93%E5%8C%BA%E5%9D%97%E9%93%BE%E5%BC%80%E5%8F%91%E6%89%8B%E5%86%8C/%E8%84%91%E5%9B%BE%E6%88%AA%E5%9B%BE/5.1.%E8%BD%AC%E8%B4%A6%E4%BA%A4%E6%98%93-%E8%AE%BE%E7%BD%AE%E7%AD%BE%E5%90%8D.png)
+
+**SignTransaction**
+
+```go
+func (bc *BlockChain) SignTransaction(tx *Transaction, privateKey ecdsa.PrivateKey, txs []*Transaction) {
+   //1.判断要签名的tx，如果是coninbase交易直接返回
+   if tx.IsCoinBaseTransaction() {
+      return
+   }
+
+   //2.获取该tx中的Input，引用之前的transaction中的未花费的output
+   prevTxs := make(map[string]*Transaction)
+   for _, input := range tx.Vins {
+      txIDStr := hex.EncodeToString(input.TxID)
+      prevTxs[txIDStr] = bc.FindTransactionByTxID(input.TxID, txs)
+   }
+
+   //3.签名
+   tx.Sign(privateKey, prevTxs)
+
+}
+```
+
+**Sign**
+
+```go
+func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey, prevTxsmap map[string]*Transaction) {
+	//1.判断当前tx是否是coinbase交易
+	if tx.IsCoinBaseTransaction() {
+		return
+	}
+
+	//2.获取input对应的output所在的tx，如果不存在，无法进行签名
+	for _, input := range tx.Vins {
+		if prevTxsmap[hex.EncodeToString(input.TxID)] == nil {
+			log.Panic("当前的Input，没有找到对应的output所在的Transaction，无法签名。。")
+		}
+	}
+
+	//即将进行签名:私钥，要签名的数据
+	txCopy := tx.TrimmedCopy()
+
+	for index, input := range txCopy.Vins {
+
+		prevTx := prevTxsmap[hex.EncodeToString(input.TxID)]
+
+		txCopy.Vins[index].Signature = nil    
+		txCopy.Vins[index].PublicKey = prevTx.Vouts[input.Vout].PubKeyHash //设置input中的publickey为对应的output的公钥哈希
+
+
+		txCopy.TxID = txCopy.NewTxID()//产生要签名的交易的TxID
+
+		//为了方便下一个input，将数据再置为空
+		txCopy.Vins[index].PublicKey = nil
+
+
+		/*
+		第一个参数
+		第二个参数：私钥
+		第三个参数：要签名的数据
+
+
+		func Sign(rand io.Reader, priv *PrivateKey, hash []byte) (r, s *big.Int, err error)
+		r + s--->sign
+		input.Signatrue = sign
+	 */
+		r,s,err:=ecdsa.Sign(rand.Reader, &privateKey, txCopy.TxID )
+		if err != nil{
+			log.Panic(err)
+		}
+
+		sign:=append(r.Bytes(),s.Bytes()...)
+		tx.Vins[index].Signature = sign
+	}
+
+}
+
+```
+
+**TrimmedCopy**
+
+```go
+func (tx *Transaction) TrimmedCopy() *Transaction {
+	var inputs [] *TxInput
+	var outputs [] *TxOutput
+	for _, in := range tx.Vins {
+		inputs = append(inputs, &TxInput{in.TxID, in.Vout, nil, nil})
+	}
+
+	for _, out := range tx.Vouts {
+		outputs = append(outputs, &TxOutput{out.Value, out.PubKeyHash})
+	}
+
+	txCopy := &Transaction{tx.TxID, inputs, outputs}
+	return txCopy
+
+}
+```
+
+
+
+##### 4.2.2 验证交易
+
+```go
+func (tx *Transaction) Verifity(prevTxs map[string]*Transaction)bool{
+	//1.如果是coinbase交易，不需要验证
+	if tx.IsCoinBaseTransaction(){
+		return true
+	}
+
+	//prevTxs
+	for _,input:=range prevTxs{
+		if prevTxs[hex.EncodeToString(input.TxID)] == nil{
+			log.Panic("当前的input没有找到对应的Transaction，无法验证。。")
+		}
+	}
+
+	//验证
+	txCopy:= tx.TrimmedCopy()
+
+	curev:= elliptic.P256() //曲线
+
+	for index,input:=range tx.Vins{
+		//原理：再次获取 要签名的数据  + 公钥哈希 + 签名
+		/*
+		验证签名的有效性：
+		第一个参数：公钥
+		第二个参数：签名的数据
+		第三、四个参数：签名：r，s
+		func Verify(pub *PublicKey, hash []byte, r, s *big.Int) bool
+		 */
+		//ecdsa.Verify()
+
+	//获取要签名的数据
+		prevTx:=prevTxs[hex.EncodeToString(input.TxID)]
+
+		txCopy.Vins[index].Signature = nil
+		txCopy.Vins[index].PublicKey = prevTx.Vouts[input.Vout].PubKeyHash
+		txCopy.TxID = txCopy.NewTxID() //要签名的数据
+
+		txCopy.Vins[index].PublicKey = nil
+
+		//获取公钥
+		/*
+		type PublicKey struct {
+			elliptic.Curve
+			X, Y *big.Int
+		}
+		 */
+
+		x:=big.Int{}
+		y:=big.Int{}
+		keyLen:=len(input.PublicKey)
+		x.SetBytes(input.PublicKey[:keyLen/2])
+		y.SetBytes(input.PublicKey[keyLen/2:])
+
+
+
+		rawPublicKey:=ecdsa.PublicKey{curev,&x,&y}
+
+
+		//获取签名：
+
+		r :=big.Int{}
+		s :=big.Int{}
+
+		signLen:=len(input.Signature)
+		r.SetBytes(input.Signature[:signLen/2])
+		s.SetBytes(input.Signature[signLen/2:])
+
+		if ecdsa.Verify(&rawPublicKey,txCopy.TxID,&r,&s) == false{
+			return false
+		}
+
+	}
+	return true
+}
+```
+
+
+
+##### 4.2.3 创建CoinBase交易
+
+```go
+func NewCoinBaseTransaction(address string) *Transaction {
+	txInput := &TxInput{[]byte{}, -1, nil, nil}
+	//txOutput := &TxOutput{10, address}
+	txOutput := NewTxOutput(10, address)
+	txCoinBaseTransaction := &Transaction{[]byte{}, []*TxInput{txInput}, []*TxOutput{txOutput}}
+	//设置交易ID
+	txCoinBaseTransaction.SetID()
+	return txCoinBaseTransaction
+}
+
+```
+
+在每个区块中创建一个CoinBase交易作为奖励机制。
+
+##### 4.2.4 新建区块
+
+```go
+func NewBlock(txs []*Transaction, prevBlockHash [] byte, height int64) *Block {
+	//创建区块
+	block := &Block{height, prevBlockHash, txs, time.Now().Unix(), nil,0}
+	//设置hash
+	//block.SetHash()
+	pow:=NewProofOfWork(block)
+	hash,nonce:=pow.Run()
+	block.Hash = hash
+	block.Nonce = nonce
+
+	return block
+}
+```
+
+##### 4.2.5 持久化存储
+
+```go
+	err = bc.DB.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(BlockBucketName))
+		if b != nil {
+			//将新block存入到数据库中
+			b.Put(newBlock.Hash, newBlock.Serialize())
+			//更新l
+			b.Put([]byte("l"), newBlock.Hash)
+			//tip
+			bc.Tip = newBlock.Hash
+		}
+
+		return nil
+	})
+	if err != nil {
+		log.Panic(err)
+	}
+```
+
+
+
+
+
+#### 4.3 更新UTXO集
+
+```
+func (utxoSet *UTXOSet) Update() {
+	/*
+	表：key：txID
+		value：TxOutputs
+			UTXOs []UTXO
+	 */
+
+	//1.获取最后(从后超前遍历)一个区块,遍历该区块中的所有tx
+	newBlock := utxoSet.BlockChian.Iterator().Next()
+	//2.获取所有的input
+	inputs := [] *TxInput{}
+	//遍历交易，获取所有的input
+	for _, tx := range newBlock.Txs {
+		if !tx.IsCoinBaseTransaction() {
+			for _, in := range tx.Vins {
+				inputs = append(inputs, in)
+			}
+		}
+	}
+
+
+	//存储该区块中的，tx中的未花费
+	outsMap := make(map[string]*TxOutputs)
+
+	//3.获取所有的output
+	for _, tx := range newBlock.Txs {
+		utxos := []*UTXO{}
+		//找出交易中的未花费
+		for index, output := range tx.Vouts {
+			isSpent := false
+			//遍历inputs的数组，比较是否有intput和该output对应，如果满足，表示花费了
+			for _, input := range inputs {
+				if bytes.Compare(tx.TxID, input.TxID) == 0 && index == input.Vout {
+					if bytes.Compare(output.PubKeyHash, PubKeyHash(input.PublicKey)) == 0 {
+						isSpent = true
+					}
+				}
+			}
+			if isSpent == false {
+				//output未花
+				utxo := &UTXO{tx.TxID, index, output}
+				utxos = append(utxos, utxo)
+			}
+		}
+
+		//utxos,
+		if len(utxos) > 0 {
+			txIDStr := hex.EncodeToString(tx.TxID)
+			outsMap[txIDStr] = &TxOutputs{utxos}
+		}
+
+	}
+
+
+	//删除花费了数据,添加未花费
+	err := utxoSet.BlockChian.DB.Update(func(tx *bolt.Tx) error {
+	
+		b := tx.Bucket([]byte(utxosettable))
+		if b != nil {
+			//遍历inputs，删除
+			for _, input := range inputs {
+				txOutputsBytes := b.Get(input.TxID)
+				if len(txOutputsBytes) == 0 {
+					continue
+				}
+
+				//反序列化
+				txOutputs := DeserializeTxOutputs(txOutputsBytes)
+				//是否需要被删除
+				isNeedDelete := false
+
+				//存储该txoutout中未花费utxo
+				utxos := []*UTXO{}
+
+				for _, utxo := range txOutputs.UTXOs {
+					if bytes.Compare(utxo.Output.PubKeyHash, PubKeyHash(input.PublicKey)) == 0 && input.Vout == utxo.Index {
+						isNeedDelete = true
+					} else {
+						utxos = append(utxos, utxo)
+					}
+				}
+
+				if isNeedDelete == true {
+					b.Delete(input.TxID)
+					if len(utxos) > 0 {
+						txOutputs := &TxOutputs{utxos}
+						b.Put(input.TxID, txOutputs.Serialize())
+					}
+				}
+			}
+
+			//遍历map，添加
+			for txIDStr, txOutputs := range outsMap {
+				txID, _ := hex.DecodeString(txIDStr)
+				b.Put(txID, txOutputs.Serialize())
+
+			}
+
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		log.Panic(err)
+	}
+}
+```
+
+* 删除本次交易产生的input对应的utxo
+* 添加本次交易产生的新utxo
+
+
+
+### 5.代码共享
+
+由于转账交易这一块的内容代码量特别大，脑图跟交易流程图我也是花费了大量的时间进行整理，但是要一项一项进行代码分析，时间成本还是太大了，所以，将github的代码共享给大家，可以照着文章思路与思维导图中的路线进行适当的分析。https://github.com/DiaboFong/MyPublicChain
 
