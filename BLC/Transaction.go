@@ -236,7 +236,7 @@ func (tx *Transaction) NewTxID() []byte {
 公钥 + 要签名的数据 验证 签名：rs
  */
 func (tx *Transaction) Verifity(prevTxs map[string]*Transaction)bool{
-	//1.如果时coinbase交易，不需要验证
+	//1.如果是coinbase交易，不需要验证
 	if tx.IsCoinBaseTransaction(){
 		return true
 	}

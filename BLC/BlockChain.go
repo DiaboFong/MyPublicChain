@@ -193,7 +193,7 @@ func (bc *BlockChain) Iterator() *BlockChainIterator {
 func GetBlockChainObject() *BlockChain {
 	/*
 		1.数据库存在，读取数据库，返回blockchain即可
-		2.数据库 不存储，返回nil
+		2.数据库 不存在，返回nil
 	 */
 
 	if dbExists() {
