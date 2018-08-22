@@ -1,4 +1,4 @@
-# 从0到1简易区块链开发手册V0.4
+# 从0到1简易区块链开发手册V0.5
 
 **Author: brucefeng**
 
@@ -2450,4 +2450,148 @@ func (utxoSet *UTXOSet) Update() {
 ### 5.代码共享
 
 由于转账交易这一块的内容代码量特别大，脑图跟交易流程图我也是花费了大量的时间进行整理，但是要一项一项进行代码分析，时间成本还是太大了，所以，将github的代码共享给大家，可以照着文章思路与思维导图中的路线进行适当的分析。https://github.com/DiaboFong/MyPublicChain
+
+
+
+## 七. 查询余额
+
+其实这个章节的一些知识点在转账交易那一章节均有所涉及，所以，查询余额这个功能相对而言比较简单，只要熟悉了UTXO模型，加上对交易流程的了解之后，对查询余额基本上已经有了思路。
+
+### 1.命令行代码
+
+```go
+
+func (cli *CLI) GetBalance(address string) {
+	bc := GetBlockChainObject()
+	if bc == nil {
+		fmt.Println("没有BlockChain，无法查询。。")
+		os.Exit(1)
+	}
+	defer bc.DB.Close()
+	utxoSet :=&UTXOSet{bc}
+	total:=utxoSet.GetBalance(address)
+
+	fmt.Printf("%s,余额是：%d\n", address, total)
+}
+
+```
+
+* 获取区块链对象
+* 获取utxoSet对象
+* 通过utxoSet的GetBalance方法获得对应的余额
+
+### 2. 查询余额代码
+
+**GetBalance**
+
+```go
+func (utxoSet *UTXOSet) GetBalance(address string) int64 {
+	utxos := utxoSet.FindUnspentUTXOsByAddress(address)
+
+	var total int64
+
+	for _, utxo := range utxos {
+		total += utxo.Output.Value
+	}
+	return total
+}
+```
+
+* 通过FindUnspentUTXOsByAddress获得utxo的数组对象utxos
+* 通过对utxos进行遍历得到utxo对象
+* 将utxo对象的Output的Value属性值进行累加得到余额
+
+### 3.通过地址获取未花费utxo数组
+
+**FindUnspentUTXOsByAddress**
+
+```go
+func (utxoSet *UTXOSet) FindUnspentUTXOsByAddress(address string) []*UTXO {
+	var utxos []*UTXO
+	err := utxoSet.BlockChian.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(utxosettable))
+		if b != nil {
+			/*
+			获取表中的所有的数据
+			key,value
+			key:TxID
+			value：TxOuputs
+			 */
+			c := b.Cursor()
+			for k, v := c.First(); k != nil; k, v = c.Next() {
+				txOutputs := DeserializeTxOutputs(v)
+				for _, utxo := range txOutputs.UTXOs { //txid, index,output
+					if utxo.Output.UnlockWithAddress(address) {
+						utxos = append(utxos, utxo)
+					}
+				}
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return utxos
+}
+```
+
+### 4.代码测试
+
+#### 4.1 获取所有地址
+
+```
+$ ./mybtc  getaddresslists
+```
+
+返回结果
+
+```
+钱包地址列表为:
+        1DHPNHKfk9uUdog2f2xBvx9dq4NxpF5Q4Q
+        1HtJve4MwW4LVko3yjkj3UUvzXsuGHb1Yq
+```
+
+#### 4.2 查询余额
+
+```
+$ ./mybtc getbalance -address 1DHPNHKfk9uUdog2f2xBvx9dq4NxpF5Q4Q
+```
+
+返回结果
+
+```
+1DHPNHKfk9uUdog2f2xBvx9dq4NxpF5Q4Q,余额是：12
+```
+
+**分析**
+
+```
+1.创建创世区块，该地址获得10元
+2.第一笔转账，给地址1HtJve4MwW4LVko3yjkj3UUvzXsuGHb1Yq转账2元， 剩余8元，得到10元奖励，余额为18元
+3.第二笔转账，给地址1HtJve4MwW4LVko3yjkj3UUvzXsuGHb1Yq转账3元， 剩余15元,得到10元奖励，余额为25元
+4.第三笔转账，给地址1HtJve4MwW4LVko3yjkj3UUvzXsuGHb1Yq转账23元，剩余2元，得到10元奖励，余额为12元
+```
+
+> 10元奖励是代码中设定每个区块的CoinBase交易给转账用户的，实际比特币场景是给矿工的，这里是测试场景，请大家勿要混淆。
+
+```
+./mybtc getbalance -address 1HtJve4MwW4LVko3yjkj3UUvzXsuGHb1Yq
+```
+
+返回结果
+
+```
+1HtJve4MwW4LVko3yjkj3UUvzXsuGHb1Yq,余额是：28
+```
+
+**分析**
+
+```
+2 + 3 + 23 = 28元
+```
+
+到此，我们查询余额的功能基本完毕。
 
