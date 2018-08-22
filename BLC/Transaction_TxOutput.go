@@ -11,7 +11,7 @@ type TxOutput struct {
 	PubKeyHash [] byte//公钥哈希
 }
 
-//判断TxOutput是否时指定的用户解锁
+//判断TxOutput是否为指定地址
 func (txOutput *TxOutput) UnlockWithAddress(address string) bool{
 	full_payload:=Base58Decode([]byte(address))
 
@@ -31,5 +31,11 @@ func NewTxOutput(value int64,address string) *TxOutput{
 func (tx *TxOutput) Lock(address string){
 	full_payload := Base58Decode([]byte(address))
 	tx.PubKeyHash = full_payload[1:len(full_payload)-addressCheckSumLen]
+	//  full_payload
+	//   version publicHash CheckSum
+	// 如   1      2345      6789 	 ==> 长度为9，[1,5] ==> [1,9-4]
+
+	//full_payload[0] ==> version
+
 }
 

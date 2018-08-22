@@ -132,7 +132,7 @@ func (utxoSet *UTXOSet) FindSpentableUTXOs(from string, amount int64, txs []*Tra
 	var total int64
 	//用于存储转账所使用utxo
 	spentableUTXOMap := make(map[string][]int)
-	//1.查询未打包utxo：txs
+	//1.查询未打包可以使用的utxo：txs
 	unPackageSpentableUTXOs := utxoSet.FindUnpackeSpentableUTXO(from, txs)
 
 	for _, utxo := range unPackageSpentableUTXOs {
@@ -144,10 +144,10 @@ func (utxoSet *UTXOSet) FindSpentableUTXOs(from string, amount int64, txs []*Tra
 		}
 	}
 
-	//钱不够，
+
 
 	//2.查询utxotable，查询utxo
-	//已经存储的都是未花费
+	//已经存储的但是未花费的utxo
 	err := utxoSet.BlockChian.DB.View(func(tx *bolt.Tx) error {
 		//查询utxotable中，未花费的utxo
 		b := tx.Bucket([]byte(utxosettable))
@@ -183,6 +183,7 @@ func (utxoSet *UTXOSet) FindSpentableUTXOs(from string, amount int64, txs []*Tra
 	return total, spentableUTXOMap
 }
 
+
 //查询未打包的tx中，可以使用的utxo
 func (utxoSet *UTXOSet) FindUnpackeSpentableUTXO(from string, txs []*Transaction) []*UTXO {
 	//存储可以使用的未花费utxo
@@ -198,6 +199,7 @@ func (utxoSet *UTXOSet) FindUnpackeSpentableUTXO(from string, txs []*Transaction
 
 	return unUTXOs
 }
+
 
 /*
 每次转账后，更新UTXOSet：
@@ -216,7 +218,7 @@ func (utxoSet *UTXOSet) Update() {
 			UTXOs []UTXO
 	 */
 
-	//1.获取最后一个区块,遍历该区块中的所有tx
+	//1.获取最后(从后超前遍历)一个区块,遍历该区块中的所有tx
 	newBlock := utxoSet.BlockChian.Iterator().Next()
 	//2.获取所有的input
 	inputs := [] *TxInput{}

@@ -13,13 +13,14 @@ type TxInput struct {
 	//ScriptSiq string
 
 	Signature []byte //数字签名
-	PublicKey[]byte //原始公钥，钱包里的公钥
+	PublicKey []byte //原始公钥，钱包里的公钥
 
 }
 
-//判断TxInput是否时指定的用户消费
+//判断TxInput是否是指定的地址消费
 func (txInput *TxInput) UnlockWithAddress(pubKeyHash []byte) bool{
 
 	pubKeyHash2:=PubKeyHash(txInput.PublicKey)
 	return bytes.Compare(pubKeyHash,pubKeyHash2) == 0
 }
+

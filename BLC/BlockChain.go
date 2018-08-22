@@ -235,10 +235,7 @@ func (bc *BlockChain) MineNewBlock(from, to, amount []string) {
 	3.存入到数据库中
 	 */
 
-	//fmt.Println(from)
-	//fmt.Println(to)
-	//fmt.Println(amount)
-	//1.新建交易
+	//1.新建交易集合
 	var txs [] *Transaction
 
 	utxoSet := &UTXOSet{bc}
@@ -327,7 +324,7 @@ func (bc *BlockChain) GetBalance(address string, txs [] *Transaction) int64 {
 UTXO模型：未花费的交易输出
 	Unspent Transaction TxOutput
  */
-func (bc *BlockChain) UnSpent(address string, txs [] *Transaction) []*UTXO { //王二狗
+func (bc *BlockChain) UnSpent(address string, txs [] *Transaction) []*UTXO {
 	/*
 	0.查询本次转账已经创建了的哪些transaction
 
@@ -385,7 +382,7 @@ func caculate(tx *Transaction, address string, spentTxOutputMap map[string][]int
 			pubKeyHash := full_payload[1 : len(full_payload)-addressCheckSumLen]
 
 			if txInput.UnlockWithAddress(pubKeyHash) {
-				//txInput的解锁脚本(用户名) 如果和钥查询的余额的用户名相同，
+				//txInput的解锁脚本(用户名) 如果和要查询的余额的用户名相同，
 				key := hex.EncodeToString(txInput.TxID)
 				spentTxOutputMap[key] = append(spentTxOutputMap[key], txInput.Vout)
 				/*
@@ -398,7 +395,7 @@ func caculate(tx *Transaction, address string, spentTxOutputMap map[string][]int
 
 	//遍历所有的TxOutput
 outputs:
-	for index, txOutput := range tx.Vouts { //index= 0,txoutput.锁定脚本：王二狗
+	for index, txOutput := range tx.Vouts { //index= 0,txoutput.锁定脚本
 		if txOutput.UnlockWithAddress(address) {
 			if len(spentTxOutputMap) != 0 {
 				var isSpentOutput bool //false
@@ -421,7 +418,7 @@ outputs:
 				}
 
 			} else {
-				//如果map长度未0,证明还没有花费记录，output无需判断
+				//如果map长度为0,证明还没有花费记录，output无需判断
 				//unSpentTxOutput = append(unSpentTxOutput, txOutput)
 				utxo := &UTXO{tx.TxID, index, txOutput}
 				unSpentUTXOs = append(unSpentUTXOs, utxo)
@@ -468,13 +465,13 @@ func (bc *BlockChain) FindSpentableUTXOs(from string, amount int64, txs []*Trans
 }
 
 //签名：
-func (bc *BlockChain) SignTrasanction(tx *Transaction, privateKey ecdsa.PrivateKey, txs []*Transaction) {
-	//1.判断要签名的tx，如果时coninbase交易直接返回
+func (bc *BlockChain) SignTransaction(tx *Transaction, privateKey ecdsa.PrivateKey, txs []*Transaction) {
+	//1.判断要签名的tx，如果是coninbase交易直接返回
 	if tx.IsCoinBaseTransaction() {
 		return
 	}
 
-	//2.获取该tx中的Input，引用之前的transaction中的未花费的output，
+	//2.获取该tx中的Input，引用之前的transaction中的未花费的output
 	prevTxs := make(map[string]*Transaction)
 	for _, input := range tx.Vins {
 		txIDStr := hex.EncodeToString(input.TxID)
@@ -495,7 +492,7 @@ func (bc *BlockChain) FindTransactionByTxID(txID []byte, txs [] *Transaction) *T
 		}
 	}
 
-	//2.遍历数据库，获取blcok--->transaction
+	//2.遍历数据库，获取block--->transaction
 	iterator := bc.Iterator()
 	for {
 		block := iterator.Next()

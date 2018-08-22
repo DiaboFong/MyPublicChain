@@ -25,7 +25,7 @@ type Transaction struct {
 
 /*
 交易：
-1.CoinBase交易：创世区块中
+1.CoinBase交易
 2.转账产生的普通交易：
  */
 
@@ -87,15 +87,10 @@ func NewSimpleTransaction(from, to string, amount int64, utxoSet *UTXOSet, txs [
 		}
 	}
 
-	//idBytes, _ := hex.DecodeString("c16d3ad93450cd532dcd7ef53d8f396e46b2e59aa853ad44c284314c7b9db1b4")
-	//idBytes, _ := hex.DecodeString("143d7db0d5cce24645edb2ba0b503fe15969ade0c721edfd3578cd731c563a16")
-	//txInput := &TxInput{idBytes, 1, from}
-	//txInputs = append(txInputs, txInput)
 
 	//3.创建Output
 
 	//转账
-	//txOutput := &TxOutput{amount, to}
 	txOutput := NewTxOutput(amount, to)
 	txOuputs = append(txOuputs, txOutput)
 
@@ -104,7 +99,7 @@ func NewSimpleTransaction(from, to string, amount int64, utxoSet *UTXOSet, txs [
 	txOutput2 := NewTxOutput(total-amount, from)
 	txOuputs = append(txOuputs, txOutput2)
 
-	//创建交易
+	//4.创建交易
 	tx := &Transaction{[]byte{}, txInputs, txOuputs}
 
 	//设置交易的ID
@@ -112,7 +107,7 @@ func NewSimpleTransaction(from, to string, amount int64, utxoSet *UTXOSet, txs [
 
 
 	//设置签名
-	utxoSet.BlockChian.SignTrasanction(tx,wallet.PrivateKey,txs)
+	utxoSet.BlockChian.SignTransaction(tx,wallet.PrivateKey,txs)
 
 
 	return tx
@@ -132,7 +127,7 @@ func (tx *Transaction) IsCoinBaseTransaction() bool {
 	要获取交易的Input，引用的output，所在的之前的交易：
  */
 func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey, prevTxsmap map[string]*Transaction) {
-	//1.判断当前tx是否时coinbase交易
+	//1.判断当前tx是否是coinbase交易
 	if tx.IsCoinBaseTransaction() {
 		return
 	}
@@ -148,7 +143,6 @@ func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey, prevTxsmap map[string]*
 	txCopy := tx.TrimmedCopy()
 
 	for index, input := range txCopy.Vins {
-		// input--->5566
 
 		prevTx := prevTxsmap[hex.EncodeToString(input.TxID)]
 
@@ -156,13 +150,11 @@ func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey, prevTxsmap map[string]*
 		txCopy.Vins[index].PublicKey = prevTx.Vouts[input.Vout].PubKeyHash //设置input中的publickey为对应的output的公钥哈希
 
 
-		txCopy.TxID = txCopy.NewTxID()//产生要签名的数据：
+		txCopy.TxID = txCopy.NewTxID()//产生要签名的交易的TxID
 
 		//为了方便下一个input，将数据再置为空
 		txCopy.Vins[index].PublicKey = nil
 
-
-		//获取要交易的数据
 
 		/*
 		第一个参数
