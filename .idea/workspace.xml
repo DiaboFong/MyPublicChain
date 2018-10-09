@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c05ad8ec-8eff-476d-89a8-9d6ebe66c81e" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="c05ad8ec-8eff-476d-89a8-9d6ebe66c81e" name="Default" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -17,7 +15,7 @@
         <entry file="file://$PROJECT_DIR$/BLC/BlockChain.go">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="8">
-              <caret line="184" column="1" lean-forward="true" selection-start-line="127" selection-end-line="184" selection-end-column="1" />
+              <caret line="184" column="1" selection-start-line="127" selection-end-line="184" selection-end-column="1" />
               <folding>
                 <element signature="e#13#141#0" expanded="true" />
                 <element signature="n#!!block;n#caculate#0" />
@@ -29,8 +27,8 @@
       <file leaf-file-name="Block.go" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/BLC/Block.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="409">
-              <caret line="33" column="25" lean-forward="true" selection-start-line="33" selection-start-column="25" selection-end-line="33" selection-end-column="25" />
+            <state relative-caret-position="171">
+              <caret line="19" column="13" selection-start-line="19" selection-start-column="4" selection-end-line="19" selection-end-column="13" />
             </state>
           </provider>
         </entry>
@@ -39,7 +37,7 @@
         <entry file="file://$PROJECT_DIR$/BLC/BlockChainIterator.go">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="119">
-              <caret line="10" column="22" lean-forward="true" selection-start-line="10" selection-start-column="22" selection-end-line="10" selection-end-column="22" />
+              <caret line="10" column="22" selection-start-line="10" selection-start-column="22" selection-end-line="10" selection-end-column="22" />
             </state>
           </provider>
         </entry>
@@ -69,7 +67,7 @@
         <entry file="file://$PROJECT_DIR$/BLC/Transaction_TxOutput.go">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="476">
-              <caret line="28" lean-forward="true" selection-start-line="28" selection-end-line="28" />
+              <caret line="28" selection-start-line="28" selection-end-line="28" />
             </state>
           </provider>
         </entry>
@@ -107,6 +105,7 @@
   <component name="FindInProjectRecents">
     <findStrings>
       <find>coinbase</find>
+      <find>Printc</find>
     </findStrings>
   </component>
   <component name="GOROOT" path="/usr/local/go" />
@@ -148,10 +147,11 @@
   <component name="NodePackageJsonFileManager">
     <packageJsonPaths />
   </component>
-  <component name="ProjectFrameBounds" extendedState="6" fullScreen="true">
-    <option name="x" value="1680" />
+  <component name="ProjectFrameBounds">
+    <option name="x" value="591" />
+    <option name="y" value="114" />
     <option name="width" value="2560" />
-    <option name="height" value="1440" />
+    <option name="height" value="980" />
   </component>
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
@@ -240,8 +240,7 @@
     </recent_temporary>
   </component>
   <component name="ToolWindowManager">
-    <frame x="1680" y="0" width="2560" height="1440" extended-state="6" />
-    <editor active="true" />
+    <frame x="591" y="114" width="2560" height="980" extended-state="0" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.13899921" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -251,7 +250,7 @@
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.384734" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Terminal" order="7" visible="true" weight="0.6907601" />
+      <window_info anchor="bottom" id="Terminal" order="7" visible="true" weight="1.0" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39940387" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -552,7 +551,7 @@
     <entry file="file://$PROJECT_DIR$/BLC/Transaction_TxOutput.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="476">
-          <caret line="28" lean-forward="true" selection-start-line="28" selection-end-line="28" />
+          <caret line="28" selection-start-line="28" selection-end-line="28" />
         </state>
       </provider>
     </entry>
@@ -586,7 +585,7 @@
     <entry file="file://$PROJECT_DIR$/BLC/BlockChainIterator.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="119">
-          <caret line="10" column="22" lean-forward="true" selection-start-line="10" selection-start-column="22" selection-end-line="10" selection-end-column="22" />
+          <caret line="10" column="22" selection-start-line="10" selection-start-column="22" selection-end-line="10" selection-end-column="22" />
         </state>
       </provider>
     </entry>
@@ -617,7 +616,7 @@
     <entry file="file://$PROJECT_DIR$/BLC/BlockChain.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="8">
-          <caret line="184" column="1" lean-forward="true" selection-start-line="127" selection-end-line="184" selection-end-column="1" />
+          <caret line="184" column="1" selection-start-line="127" selection-end-line="184" selection-end-column="1" />
           <folding>
             <element signature="e#13#141#0" expanded="true" />
             <element signature="n#!!block;n#caculate#0" />
@@ -627,8 +626,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/BLC/Block.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="409">
-          <caret line="33" column="25" lean-forward="true" selection-start-line="33" selection-start-column="25" selection-end-line="33" selection-end-column="25" />
+        <state relative-caret-position="171">
+          <caret line="19" column="13" selection-start-line="19" selection-start-column="4" selection-end-line="19" selection-end-column="13" />
         </state>
       </provider>
     </entry>
